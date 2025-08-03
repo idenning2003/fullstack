@@ -1,0 +1,33 @@
+package api.controllers;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+/**
+ * HeartbeatController.
+ */
+@RestController
+@RequestMapping("")
+public class HeartbeatController {
+    /**
+     * Heartbeat.
+     *
+     * @return true
+     */
+    @GetMapping(path = "")
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            content = @Content(schema = @Schema(implementation = Boolean.class), mediaType = "application/json")
+        )
+    })
+    public boolean heartbeat() {
+        return true;
+    }
+}
