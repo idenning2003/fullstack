@@ -1,0 +1,42 @@
+name: Main
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - '**'
+
+jobs:
+  cache-maven:
+    uses: ./.github/workflows/cache-maven.yml
+
+  build-openapi:
+    needs: cache-maven
+    uses: ./.github/workflows/build-openapi.yml
+
+  test-api:
+    needs:
+      - cache-maven
+      - build-openapi
+    uses: ./.github/workflows/test-api.yml
+
+  build-api:
+    needs:
+      - cache-maven
+    uses: ./.github/workflows/build-api.yml
+
+  deploy-pages:
+    needs:
+      - build-openapi
+      - test-api
+    uses: ./.github/workflows/deploy-pages.yml
+
+  test-ui:
+    needs:
+      - build-openapi
+      - build-api
+    uses: ./.github/workflows/test-ui.yml
+
+  build-ui:
+    needs: build-openapi
+    uses: ./.github/workflows/build-ui.yml

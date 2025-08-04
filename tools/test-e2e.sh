@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_DIR="$SCRIPT_DIR/../api"
 UI_DIR="$SCRIPT_DIR/../ui"
 
-$API_DIR/mvnw package --file $API_DIR/pom.xml -DskipTests -DskipITs
+$API_DIR/mvnw -B package --file $API_DIR/pom.xml -DskipTests -DskipITs
 java -jar $API_DIR/target/api-1.jar &
 API_PID=$!
 

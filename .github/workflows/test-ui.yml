@@ -1,14 +1,10 @@
-name: Workflow
+name: Test UI
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-    - '**'
+  workflow_call:
 
 jobs:
-  main:
-
+  cypress:
     runs-on: ubuntu-latest
 
     services:
@@ -28,14 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-
-    - name: Cache node modules
+    - name: Cache Node Modules
       id: cache-npm
       uses: actions/cache@v4
       env:
@@ -50,41 +39,29 @@ jobs:
 
     - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       working-directory: ./ui
-      name: List the state of node modules
+      name: List State of Node Modules
       continue-on-error: true
       run: npm list
 
-    - name: Install dependencies
+    - name: Install Dependencies
       working-directory: ./ui
       run: |
         npm install -g @angular/cli
         npm install
 
-    - name: Update OpenAPI
-      working-directory: ./tools
-      run: |
-        ./update-openapi.sh
+    - name: OpenAPI typescript
+      uses: actions/download-artifact@v4
+      with:
+        name: openapi-typescript
+        path: ui/src/app/api
 
-    - name: Test api development
-      working-directory: ./api
-      run: ./mvnw -B test --file pom.xml
+    - name: Download API jar
+      uses: actions/download-artifact@v4
+      with:
+        name: api-jar
+        path: ./target
 
-    - name: Test api production
-      working-directory: ./api
-      run: ./mvnw -B test --file pom.xml -Pprod
-      env:
-        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/
-        SPRING_DATASOURCE_USERNAME: db_user
-        SPRING_DATASOURCE_PASSWORD: db_pass
-        SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
-        SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-
-    - name: Build api
-      working-directory: ./api
-      run: ./mvnw -B package --file pom.xml -Pprod -DskipTests -DskipITs
-
-    - name: Start api
-      working-directory: ./api
+    - name: Start API
       run: |
         nohup java -jar ./target/api-1.jar &
         until curl -fsS http://localhost:8080 | grep -q true; do sleep 1; done
@@ -95,19 +72,7 @@ jobs:
         SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
         SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
 
-    - name: Test ui
+    - name: Test UI
       working-directory: ./ui
       run: |
         ng e2e
-
-    - name: Build ui
-      working-directory: ./ui
-      run: |
-        ng build --configuration=production
-
-    - uses: actions/upload-artifact@v4.6.2
-      with:
-        name: app
-        path: |
-          api/target/api-1.jar
-          ui/dist/ui/browser

@@ -3,7 +3,7 @@ WORKDIR /app
 COPY mvnw ./
 COPY .mvn .mvn
 COPY pom.xml ./
-RUN ./mvnw dependency:go-offline
+RUN ./mvnw -B dependency:go-offline
 COPY checkstyle.xml ./
 COPY src src
 RUN ./mvnw -B package --file pom.xml -Pprod -DskipTests -DskipITs

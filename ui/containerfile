@@ -4,6 +4,7 @@ RUN npm install -g @angular/cli
 COPY package*.json ./
 RUN npm install
 COPY . .
+RUN test -d src/app/api || (echo "ERROR: src/app/api is missing. Run update-openapi.sh to generate it." && exit 1)
 RUN ng build --configuration=production
 
 FROM nginx:latest AS runtime
