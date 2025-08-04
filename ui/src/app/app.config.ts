@@ -9,7 +9,7 @@ import { routes } from './app.routes';
 
 export function apiConfigFactory(): Configuration {
   return new Configuration({
-    basePath: '/api'
+    basePath: '/api',
   });
 }
 
@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     {
       provide: Configuration,
-      useFactory: apiConfigFactory
-    }
-  ]
+      useFactory: apiConfigFactory,
+    },
+  ],
 };

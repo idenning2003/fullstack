@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { HeartbeatControllerService, UserControllerService } from './api';
@@ -7,21 +7,17 @@ import { HeartbeatControllerService, UserControllerService } from './api';
   selector: 'app-root',
   imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
-export class AppComponent {
-  constructor(
-    private toastr: ToastrService,
-    private heartbeatControllerService: HeartbeatControllerService,
-    private userControllerService: UserControllerService
-  ) {
-
-  }
+export class AppComponent implements OnInit {
+  private toastr = inject(ToastrService);
+  private heartbeatControllerService = inject(HeartbeatControllerService);
+  private userControllerService = inject(UserControllerService);
 
   ngOnInit() {
     this.heartbeatControllerService.heartbeat().subscribe({
-      next: res => this.toastr.success('API Connected!'),
-      error: err => this.toastr.error(err.error.message)
-    })
+      next: () => this.toastr.success('API Connected:'),
+      error: (err) => this.toastr.error(err.error.message),
+    });
   }
 }
