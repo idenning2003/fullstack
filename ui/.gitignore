@@ -46,3 +46,4 @@ src/app/api/
 
 # Cypress
 cypress/screenshots
+cypress/results

@@ -1,25 +1,11 @@
-name: Build UI
+name: UI Test
 
 on:
   workflow_call:
 
 jobs:
-  build-ui:
+  lint:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:17
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: db_user
-          POSTGRES_PASSWORD: db_pass
-        options: >-
-          --health-cmd "bash -c 'pg_isready -h localhost -U $POSTGRES_USER'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
     - uses: actions/checkout@v4
@@ -49,19 +35,6 @@ jobs:
         npm install -g @angular/cli
         npm install
 
-    - name: OpenAPI typescript
-      uses: actions/download-artifact@v4
-      with:
-        name: openapi-typescript
-        path: ui/src/app/api
-
-    - name: Build UI
+    - name: Lint
       working-directory: ./ui
-      run: |
-        ng build --configuration=production
-
-    - name: Upload UI
-      uses: actions/upload-artifact@v4.6.2
-      with:
-        name: ui-app
-        path: ui/dist/ui/browser
+      run: ng lint

@@ -7,36 +7,45 @@ on:
     - '**'
 
 jobs:
-  cache-maven:
-    uses: ./.github/workflows/cache-maven.yml
+  maven-cache:
+    uses: ./.github/workflows/maven-cache.yml
 
-  build-openapi:
-    needs: cache-maven
-    uses: ./.github/workflows/build-openapi.yml
+  openapi-build:
+    needs: maven-cache
+    uses: ./.github/workflows/openapi-build.yml
 
-  test-api:
+  api-check:
     needs:
-      - cache-maven
-      - build-openapi
-    uses: ./.github/workflows/test-api.yml
+      - maven-cache
+    uses: ./.github/workflows/api-check.yml
 
-  build-api:
+  api-test:
     needs:
-      - cache-maven
-    uses: ./.github/workflows/build-api.yml
+      - maven-cache
+      - openapi-build
+    uses: ./.github/workflows/api-test.yml
+
+  api-build:
+    needs:
+      - maven-cache
+    uses: ./.github/workflows/api-build.yml
+
+  ui-check:
+    uses: ./.github/workflows/ui-check.yml
+
+  ui-test:
+    needs:
+      - openapi-build
+      - api-build
+    uses: ./.github/workflows/ui-test.yml
+
+  ui-build:
+    needs: openapi-build
+    uses: ./.github/workflows/ui-build.yml
 
   deploy-pages:
     needs:
-      - build-openapi
-      - test-api
+      - openapi-build
+      - api-test
+      - ui-test
     uses: ./.github/workflows/deploy-pages.yml
-
-  test-ui:
-    needs:
-      - build-openapi
-      - build-api
-    uses: ./.github/workflows/test-ui.yml
-
-  build-ui:
-    needs: build-openapi
-    uses: ./.github/workflows/build-ui.yml

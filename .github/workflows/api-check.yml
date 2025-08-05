@@ -1,10 +1,10 @@
-name: Build API
+name: API Check
 
 on:
   workflow_call:
 
 jobs:
-  jar:
+  checkstyle:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,12 +17,10 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Build API
+    - name: Change Severity
       working-directory: ./api
-      run: ./mvnw -B package --file pom.xml -Pprod -DskipTests -DskipITs
+      run: sed -i.bak 's/<property name="severity" value="[^"]*"/<property name="severity" value="error"/' "checkstyle.xml"
 
-    - name: Upload API jar
-      uses: actions/upload-artifact@v4
-      with:
-        name: api-jar
-        path: api/target/api-1.jar
+    - name: Checkstyle
+      working-directory: ./api
+      run: ./mvnw -B checkstyle:check

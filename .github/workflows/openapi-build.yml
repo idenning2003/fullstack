@@ -1,10 +1,10 @@
-name: Build Open API
+name: Open API
 
 on:
   workflow_call:
 
 jobs:
-  OpenAPI:
+  build:
     runs-on: ubuntu-latest
 
     steps:

@@ -1,4 +1,4 @@
-name: Test UI
+name: UI Test
 
 on:
   workflow_call:
@@ -76,3 +76,13 @@ jobs:
       working-directory: ./ui
       run: |
         ng e2e
+
+    - name: Generate Test Report
+      working-directory: ./ui
+      run: npm run cypress:report
+
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: ui-test-report
+        path: ui/cypress/results/html
