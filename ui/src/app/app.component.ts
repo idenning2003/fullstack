@@ -16,7 +16,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.heartbeatControllerService.heartbeat().subscribe({
-      next: () => this.toastr.success('API Connected:'),
+      next: () => this.toastr.success('API Connected'),
       error: (err) => this.toastr.error(err.error.message),
     });
   }

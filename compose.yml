@@ -18,6 +18,8 @@ services:
       context: ./api
       dockerfile: containerfile
     restart: always
+    ports:
+      - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/
       SPRING_DATASOURCE_USERNAME: db_user

@@ -1,10 +1,19 @@
 FROM node:latest AS build
 WORKDIR /app
+RUN apt-get update && apt-get install -y default-jre
 RUN npm install -g @angular/cli
+RUN npm install @openapitools/openapi-generator-cli -g
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN test -d src/app/api || (echo "ERROR: src/app/api is missing. Run update-openapi.sh to generate it." && exit 1)
+ARG CACHEBUST=null
+RUN echo $CACHEBUST
+RUN curl -sf http://host.docker.internal:8080/v3/api-docs -o /tmp/openapi.json
+RUN openapi-generator-cli generate \
+  -i /tmp/openapi.json \
+  -g typescript-angular \
+  -o src/app/api \
+  --skip-validate-spec
 RUN ng build --configuration=production
 
 FROM nginx:latest AS runtime
