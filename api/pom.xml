@@ -9,10 +9,11 @@
   <description>Api</description>
   <url>https://github.com/idenning2003/fullstack</url>
 
+  <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-parent -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.4</version>
+    <version>3.5.4</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
@@ -46,6 +47,7 @@
 
   <reporting>
     <plugins>
+      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-checkstyle-plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -54,6 +56,7 @@
           <configLocation>checkstyle.xml</configLocation>
         </configuration>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -82,9 +85,11 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
         <dependency>
           <groupId>com.h2database</groupId>
           <artifactId>h2</artifactId>
+          <version>2.3.232</version>
         </dependency>
       </dependencies>
     </profile>
@@ -94,42 +99,55 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
+          <version>42.7.7</version>
         </dependency>
       </dependencies>
     </profile>
   </profiles>
 
   <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+      <version>3.5.4</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
+      <version>3.5.4</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <version>3.5.4</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <version>1.18.38</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
       <version>1.6.3</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <version>3.5.4</version>
       <scope>test</scope>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-api -->
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
@@ -139,9 +157,11 @@
 
   <build>
     <plugins>
+      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.14.0</version>
         <configuration>
           <compilerArgs>
             <arg>-Xlint:all</arg>
@@ -149,11 +169,13 @@
             <arg>-Werror</arg>
           </compilerArgs>
           <annotationProcessorPaths>
+            <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
             <path>
               <groupId>org.projectlombok</groupId>
               <artifactId>lombok</artifactId>
               <version>1.18.38</version>
             </path>
+            <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor -->
             <path>
               <groupId>org.mapstruct</groupId>
               <artifactId>mapstruct-processor</artifactId>
@@ -162,16 +184,19 @@
           </annotationProcessorPaths>
         </configuration>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-project-info-reports-plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <version>3.9.0</version>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-site-plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
         <version>3.21.0</version>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -192,9 +217,11 @@
           </execution>
         </executions>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-maven-plugin -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>3.5.4</version>
         <configuration>
           <jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
         </configuration>
@@ -213,6 +240,7 @@
           </execution>
         </executions>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-maven-plugin -->
       <plugin>
         <groupId>org.springdoc</groupId>
         <artifactId>springdoc-openapi-maven-plugin</artifactId>
@@ -231,6 +259,7 @@
           </execution>
         </executions>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -250,6 +279,7 @@
           </execution>
         </executions>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.openrewrite.maven/rewrite-maven-plugin -->
       <plugin>
         <groupId>org.openrewrite.maven</groupId>
         <artifactId>rewrite-maven-plugin</artifactId>
@@ -261,11 +291,13 @@
           </activeRecipes>
         </configuration>
       </plugin>
+      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-checkstyle-plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.6.0</version>
         <dependencies>
+          <!-- https://mvnrepository.com/artifact/com.puppycrawl.tools/checkstyle -->
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
