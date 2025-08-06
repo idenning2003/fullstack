@@ -6,8 +6,6 @@ services:
       POSTGRES_DB: fullstack
       POSTGRES_USER: db_user
       POSTGRES_PASSWORD: db_pass
-    networks:
-      - fullstack-net
     healthcheck:
       test: pg_isready -h localhost -U $$POSTGRES_USER
       interval: 10s
@@ -25,8 +23,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: db_pass
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-    networks:
-      - fullstack-net
+    links:
+      - db
     depends_on:
       db:
         condition: service_healthy
@@ -44,8 +42,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    networks:
-      - fullstack-net
+    links:
+      - api
     depends_on:
       api:
         condition: service_healthy
@@ -54,7 +52,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-networks:
-  fullstack-net:
-    driver: bridge
