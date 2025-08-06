@@ -13,9 +13,7 @@ public class Application {
      *
      * @param args Command line arguments
      */
-    // $COVERAGE-IGNORE-BEGIN$
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-    // $COVERAGE-IGNORE-END$
 }

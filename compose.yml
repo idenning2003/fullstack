@@ -3,6 +3,7 @@ services:
     image: postgres:17
     restart: always
     environment:
+      POSTGRES_DB: fullstack
       POSTGRES_USER: db_user
       POSTGRES_PASSWORD: db_pass
     networks:
@@ -19,7 +20,7 @@ services:
       dockerfile: containerfile
     restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/fullstack
       SPRING_DATASOURCE_USERNAME: db_user
       SPRING_DATASOURCE_PASSWORD: db_pass
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
@@ -42,6 +43,7 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     networks:
       - fullstack-net
     depends_on:

@@ -11,7 +11,7 @@ import api.dtos.ErrorDto;
  * Global exception handler.
  */
 @ControllerAdvice
-public class Handler {
+public class GlobalExceptionHandler {
     /**
      * Handle EntityNotFoundException.
      *
@@ -32,5 +32,16 @@ public class Handler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorDto> handleIllegalArgumentException(IllegalArgumentException ex) {
         return new ResponseEntity<>(new ErrorDto(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handle Throwable.
+     *
+     * @param ex Exception
+     * @return Http response
+     */
+    @ExceptionHandler(Throwable.class)
+    public ResponseEntity<ErrorDto> handleThrowable(Throwable ex) {
+        return new ResponseEntity<>(new ErrorDto(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
