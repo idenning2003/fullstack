@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { HeartbeatControllerService, UserControllerService } from './api';
+import { HeartbeatControllerService } from './api';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +12,6 @@ import { HeartbeatControllerService, UserControllerService } from './api';
 export class AppComponent implements OnInit {
   private toastr = inject(ToastrService);
   private heartbeatControllerService = inject(HeartbeatControllerService);
-  private userControllerService = inject(UserControllerService);
 
   ngOnInit() {
     this.heartbeatControllerService.heartbeat().subscribe({

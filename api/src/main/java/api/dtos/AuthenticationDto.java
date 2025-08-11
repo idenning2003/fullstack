@@ -1,22 +1,21 @@
 package api.dtos;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 /**
- * UserDto.
+ * AuthenticationDto.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
-    @NonNull
-    private Integer id;
-    private String username;
-    private String firstname;
-    private String lastname;
+public class AuthenticationDto {
+    private String accessToken;
+    private String tokenType;
+    private Date expires;
 }

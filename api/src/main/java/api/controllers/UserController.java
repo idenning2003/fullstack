@@ -1,14 +1,14 @@
 package api.controllers;
 
+import java.util.Set;
+
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,32 +34,14 @@ public class UserController {
     private UserMapper userMapper;
 
     /**
-     * Create user.
-     *
-     * @return User id
-     */
-    @Transactional
-    @PostMapping(path = "")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200",
-            content = @Content(schema = @Schema(implementation = UserDto.class), mediaType = "application/json")
-        )
-    })
-    public UserDto createUser() {
-        User user = userService.createUser();
-        Hibernate.initialize(user);
-        return userMapper.toDto(user);
-    }
-
-    /**
      * Get user.
      *
      * @param id User id
      * @return User info
      */
     @Transactional(readOnly = true)
-    @GetMapping(path = "/{id}")
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER_READ')")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -77,34 +59,21 @@ public class UserController {
     }
 
     /**
-     * Update user.
+     * Get user ids.
      *
-     * @param updated Updated user info
-     * @return User info
+     * @return User ids
      */
-    @Transactional
-    @PutMapping(path = "")
+    @Transactional(readOnly = true)
+    @GetMapping("")
+    @PreAuthorize("hasAuthority('USER_READ')")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            content = @Content(schema = @Schema(implementation = UserDto.class), mediaType = "application/json")
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            content = @Content(schema = @Schema(implementation = ErrorDto.class), mediaType = "application/json")
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            content = @Content(schema = @Schema(implementation = ErrorDto.class), mediaType = "application/json")
+            content = @Content(schema = @Schema(implementation = Set.class), mediaType = "application/json")
         )
     })
-    public UserDto updateUser(@RequestBody UserDto updated) {
-        if (updated.getId() == null) {
-            throw new IllegalArgumentException("User id must be provided.");
-        }
-        User user = userService.updateUser(updated);
-        Hibernate.initialize(user);
-        return userMapper.toDto(user);
+    public Set<Integer> getUserIds() {
+        return userService.getUserIds();
     }
 
     /**
@@ -113,7 +82,8 @@ public class UserController {
      * @param id User id
      */
     @Transactional
-    @DeleteMapping(path = "/{id}")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('USER_WRITE')")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",

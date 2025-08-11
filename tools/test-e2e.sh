@@ -8,7 +8,8 @@ UI_DIR="$SCRIPT_DIR/../ui"
 $API_DIR/mvnw -B --file $API_DIR/pom.xml \
     resources:resources \
     compiler:compile \
-    jar:jar
+    jar:jar \
+    spring-boot:repackage
 
 java -jar $API_DIR/target/api-1.jar &
 API_PID=$!

@@ -23,6 +23,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: db_pass
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      JWT_TOKEN_SECRET: ${JWT_TOKEN_SECRET}
+      API_ADMIN_USERNAME: ${API_ADMIN_USERNAME}
+      API_ADMIN_PASSWORD: ${API_ADMIN_PASSWORD}
     links:
       - db
     depends_on:

@@ -20,7 +20,7 @@ public class HeartbeatController {
      *
      * @return true
      */
-    @GetMapping(path = "")
+    @GetMapping("")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",

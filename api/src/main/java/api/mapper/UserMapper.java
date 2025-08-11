@@ -14,7 +14,7 @@ public interface UserMapper {
      * Convert to dto.
      *
      * @param user User model
-     * @return UserDto
+     * @return {@link UserDto}
      */
     UserDto toDto(User user);
 }

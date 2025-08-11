@@ -1,10 +1,13 @@
 package api.services;
 
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import api.dtos.UserDto;
 import api.entities.User;
 import api.exceptions.EntityNotFoundException;
 import api.repositories.UserRepository;
@@ -15,50 +18,91 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
     /**
-     * Create new user.
+     * Check if user exists.
      *
-     * @return User id
+     * @param id User id
+     * @return true if user exists
      */
-    @Transactional
-    public User createUser() {
-        User user = new User();
-        userRepository.save(user);
-        log.info("User created: " + user);
-        return user;
+    @Transactional(readOnly = true)
+    public boolean exists(int id) {
+        return userRepository.existsById(id);
+    }
+
+    /**
+     * Check if user exists.
+     *
+     * @param username Username
+     * @return true if user exists
+     */
+    @Transactional(readOnly = true)
+    public boolean exists(String username) {
+        return userRepository.findByUsername(username).isPresent();
     }
 
     /**
      * Get user.
      *
      * @param id User id
-     * @return User
+     * @return {@link User}
      */
     @Transactional(readOnly = true)
     public User getUser(int id) {
-        if (!userRepository.existsById(id)) {
-            throw new EntityNotFoundException("User " + id + " not found.");
-        }
-        User user = userRepository.getReferenceById(id);
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found."));
         return user;
     }
 
     /**
-     * Update user.
+     * Get user.
      *
-     * @param updated Updated user info
-     * @return User
+     * @param username Username
+     * @return {@link User}
+     */
+    @Transactional(readOnly = true)
+    public User getUser(String username) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new EntityNotFoundException("User '" + username + "' not found."));
+        return user;
+    }
+
+    /**
+     * Load user with authorities by username.
+     *
+     * @param username Username
+     * @return {@link User}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public User loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsernameWithAuthorities(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User '" + username + "' found"));
+        return user;
+    }
+
+    /**
+     * Get user ids.
+     *
+     * @return User ids.
+     */
+    @Transactional(readOnly = true)
+    public Set<Integer> getUserIds() {
+        return userRepository.findAllUserIds();
+    }
+
+    /**
+     * Save user.
+     *
+     * @param user User
      */
     @Transactional
-    public User updateUser(UserDto updated) {
-        User user = getUser(updated.getId());
-        user.setName(updated.getName());
-        log.info("User update: " + updated);
-        return user;
+    public void saveUser(User user) {
+        userRepository.save(user);
+        log.info("User saved: " + user);
     }
 
     /**
@@ -68,7 +112,7 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(int id) {
-        if (!userRepository.existsById(id)) {
+        if (!exists(id)) {
             throw new EntityNotFoundException("User " + id + " not found.");
         }
         userRepository.deleteById(id);

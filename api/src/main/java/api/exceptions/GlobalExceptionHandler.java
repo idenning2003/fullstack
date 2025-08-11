@@ -2,21 +2,22 @@ package api.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import api.dtos.ErrorDto;
 
 /**
- * Global exception handler.
+ * GlobalExceptionHandler.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
     /**
-     * Handle EntityNotFoundException.
+     * Handle {@link EntityNotFoundException}.
      *
      * @param ex Exception
-     * @return Http response
+     * @return {@link ResponseEntity}
      */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorDto> handleEntityNotFoundException(EntityNotFoundException ex) {
@@ -24,10 +25,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle IllegalArgumentException.
+     * Handle {@link DuplicateEntityException}.
      *
      * @param ex Exception
-     * @return Http response
+     * @return {@link ResponseEntity}
+     */
+    @ExceptionHandler(DuplicateEntityException.class)
+    public ResponseEntity<ErrorDto> handleDuplicateEntityException(DuplicateEntityException ex) {
+        return new ResponseEntity<>(new ErrorDto(ex.getMessage()), HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handle {@link IllegalArgumentException}.
+     *
+     * @param ex Exception
+     * @return {@link ResponseEntity}
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorDto> handleIllegalArgumentException(IllegalArgumentException ex) {
@@ -35,13 +47,13 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle Throwable.
+     * Handle {@link AccessDeniedException}.
      *
      * @param ex Exception
-     * @return Http response
+     * @return {@link ResponseEntity}
      */
-    @ExceptionHandler(Throwable.class)
-    public ResponseEntity<ErrorDto> handleThrowable(Throwable ex) {
-        return new ResponseEntity<>(new ErrorDto(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorDto> handleAccessDeniedException(AccessDeniedException ex) {
+        return new ResponseEntity<>(new ErrorDto(ex.getMessage()), HttpStatus.FORBIDDEN);
     }
 }
