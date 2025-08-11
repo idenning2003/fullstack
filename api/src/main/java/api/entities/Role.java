@@ -32,7 +32,7 @@ public class Role {
     private int id;
 
     @Column(unique = true)
-    String name;
+    private String name;
 
     @Builder.Default
     @ManyToMany

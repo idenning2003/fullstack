@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import api.entities.Authority;
 import api.entities.Role;
 import api.entities.User;
-import api.repositories.AuthorityRepository;
-import api.repositories.RoleRepository;
-import api.repositories.UserRepository;
+import api.services.AuthorityService;
+import api.services.RoleService;
+import api.services.UserService;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -22,13 +22,13 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class DbConfig {
     @Autowired
-    private AuthorityRepository authorityRepository;
+    private UserService userService;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleService roleService;
 
     @Autowired
-    private UserRepository userRepository;
+    private AuthorityService authorityService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -45,26 +45,26 @@ public class DbConfig {
     @Transactional
     public void init() {
         // Setup Authorities
-        Authority userRead = authorityRepository.findByAuthority("USER_READ")
-            .orElseGet(() -> authorityRepository.save(Authority.builder().authority("USER_READ").build()));
+        Authority userRead = authorityService.find("USER_READ")
+            .orElseGet(() -> authorityService.save(Authority.builder().authority("USER_READ").build()));
 
-        Authority userWrite = authorityRepository.findByAuthority("USER_WRITE")
-            .orElseGet(() -> authorityRepository.save(Authority.builder().authority("USER_WRITE").build()));
+        Authority userWrite = authorityService.find("USER_WRITE")
+            .orElseGet(() -> authorityService.save(Authority.builder().authority("USER_WRITE").build()));
 
         // Setup Roles
-        Role adminRole = roleRepository.findByName("ADMIN")
-            .orElseGet(() -> roleRepository.save(
+        Role adminRole = roleService.find("ADMIN")
+            .orElseGet(() -> roleService.save(
                 Role.builder()
                     .name("ADMIN")
                     .authorities(Set.of(userRead, userWrite))
                     .build()
             ));
-        Role userRole = roleRepository.findByName("USER")
-            .orElseGet(() -> roleRepository.save(Role.builder().name("USER").build()));
+        Role userRole = roleService.find("USER")
+            .orElseGet(() -> roleService.save(Role.builder().name("USER").build()));
 
         // Setup Users
-        userRepository.findByUsername("admin")
-            .orElseGet(() -> userRepository.save(
+        userService.find("admin")
+            .orElseGet(() -> userService.save(
                 User.builder()
                     .username(adminUsername)
                     .password(passwordEncoder.encode(adminPassword))

@@ -73,7 +73,7 @@ public class AuthenticationService {
             throw new DuplicateEntityException("Username '" + register.getUsername() + "' already taken.");
         }
 
-        Role userRole = roleService.getRole("USER");
+        Role userRole = roleService.get("USER");
 
         User user = User.builder()
             .username(register.getUsername())
@@ -81,7 +81,7 @@ public class AuthenticationService {
             .roles(Set.of(userRole))
             .build();
 
-        userService.saveUser(user);
+        userService.save(user);
 
         LoginDto login = new LoginDto(register.getUsername(), register.getPassword());
 

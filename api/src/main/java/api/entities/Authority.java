@@ -28,5 +28,5 @@ public class Authority implements GrantedAuthority {
     private int id;
 
     @Column(unique = true)
-    String authority;
+    private String authority;
 }

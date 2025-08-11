@@ -6,15 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * UserDto.
+ * AuthorityDto.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
+public class AuthorityDto {
     private Integer id;
-    private String username;
-    private String firstname;
-    private String lastname;
+    private String authority;
 }
