@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import api.entities.User;
 
 /**
- * UserRepository.
+ * {@link UserRepository}.
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -21,7 +21,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @param username username
      * @return {@link Optional} {@link User}
      */
-    Optional<User> findByUsername(String username);
+    public Optional<User> findByUsername(String username);
 
     /**
      * Find user by username and load authorities.
@@ -35,7 +35,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
         LEFT JOIN FETCH r.authorities
         WHERE u.username = :username
         """)
-    Optional<User> findByUsernameWithAuthorities(@Param("username") String username);
+    public Optional<User> findByUsernameWithAuthorities(@Param("username") String username);
 
     /**
      * Find all user ids.
@@ -43,5 +43,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      * @return User ids
      */
     @Query("SELECT u.id FROM User u")
-    Set<Integer> findAllUserIds();
+    public Set<Integer> findAllUserIds();
 }

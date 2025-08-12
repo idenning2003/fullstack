@@ -1,7 +1,7 @@
 package api.exceptions;
 
 /**
- * DuplicateEntityException.
+ * {@link DuplicateEntityException}.
  */
 public class DuplicateEntityException extends RuntimeException {
     /**

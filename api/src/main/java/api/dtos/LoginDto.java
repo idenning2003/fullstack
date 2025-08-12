@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * LoginDto.
+ * {@link LoginDto}.
  */
 @Data
 @Builder

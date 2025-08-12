@@ -18,11 +18,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 /**
- * AuthController.
+ * {@link AuthenticationController}.
  */
 @RestController
-@RequestMapping("/auth")
-public class AuthenticationContoller {
+@RequestMapping("/authenticate")
+public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
 
@@ -40,7 +40,7 @@ public class AuthenticationContoller {
                 schema = @Schema(implementation = AuthenticationDto.class),
                 mediaType = "application/json"
             )
-        )
+        ),
     })
     public AuthenticationDto login(@RequestBody LoginDto login) {
         return authenticationService.login(login);
@@ -58,6 +58,13 @@ public class AuthenticationContoller {
             responseCode = "200",
             content = @Content(
                 schema = @Schema(implementation = AuthenticationDto.class),
+                mediaType = "application/json"
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            content = @Content(
+                schema = @Schema(implementation = ErrorDto.class),
                 mediaType = "application/json"
             )
         ),

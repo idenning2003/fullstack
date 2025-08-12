@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Error DTO.
+ * {@link ErrorDto}.
  */
 @Data
 @Builder
@@ -16,5 +16,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ErrorDto {
     private String message;
-    private final Instant timestamp = Instant.now();
+    private Instant timestamp;
 }

@@ -1,4 +1,4 @@
-package api.config;
+package api.components;
 
 import java.util.Set;
 
@@ -17,10 +17,10 @@ import api.services.UserService;
 import jakarta.annotation.PostConstruct;
 
 /**
- * DbConfig.
+ * {@link DbSetup}.
  */
 @Component
-public class DbConfig {
+public class DbSetup {
     @Autowired
     private UserService userService;
 
@@ -45,18 +45,23 @@ public class DbConfig {
     @Transactional
     public void init() {
         // Setup Authorities
+        Authority authorityRead = authorityService.find("AUTHORITY_READ")
+            .orElseGet(() -> authorityService.save(Authority.builder().authority("AUTHORITY_READ").build()));
         Authority userRead = authorityService.find("USER_READ")
             .orElseGet(() -> authorityService.save(Authority.builder().authority("USER_READ").build()));
-
         Authority userWrite = authorityService.find("USER_WRITE")
             .orElseGet(() -> authorityService.save(Authority.builder().authority("USER_WRITE").build()));
+        Authority roleRead = authorityService.find("ROLE_READ")
+            .orElseGet(() -> authorityService.save(Authority.builder().authority("ROLE_READ").build()));
+        Authority roleWrite = authorityService.find("ROLE_WRITE")
+            .orElseGet(() -> authorityService.save(Authority.builder().authority("ROLE_WRITE").build()));
 
         // Setup Roles
         Role adminRole = roleService.find("ADMIN")
             .orElseGet(() -> roleService.save(
                 Role.builder()
                     .name("ADMIN")
-                    .authorities(Set.of(userRead, userWrite))
+                    .authorities(Set.of(authorityRead, userRead, userWrite, roleRead, roleWrite))
                     .build()
             ));
         Role userRole = roleService.find("USER")

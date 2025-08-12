@@ -1,9 +1,10 @@
 package api.services;
 
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import api.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * UserService.
+ * {@link UserService}.
  */
 @Slf4j
 @Service
@@ -34,54 +35,6 @@ public class UserService implements UserDetailsService {
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameWithAuthorities(username)
             .orElseThrow(() -> new UsernameNotFoundException("User '" + username + "' found"));
-        return user;
-    }
-
-    /**
-     * Check if user exists.
-     *
-     * @param id User id
-     * @return true if user exists
-     */
-    @Transactional(readOnly = true)
-    public boolean exists(int id) {
-        return userRepository.existsById(id);
-    }
-
-    /**
-     * Check if user exists.
-     *
-     * @param username Username
-     * @return true if user exists
-     */
-    @Transactional(readOnly = true)
-    public boolean exists(String username) {
-        return userRepository.findByUsername(username).isPresent();
-    }
-
-    /**
-     * Get user.
-     *
-     * @param id User id
-     * @return {@link User}
-     */
-    @Transactional(readOnly = true)
-    public User get(int id) {
-        User user = userRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found."));
-        return user;
-    }
-
-    /**
-     * Get user.
-     *
-     * @param username Username
-     * @return {@link User}
-     */
-    @Transactional(readOnly = true)
-    public User get(String username) {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new EntityNotFoundException("User '" + username + "' not found."));
         return user;
     }
 
@@ -108,13 +61,61 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Get user ids.
+     * Check if user exists.
+     *
+     * @param id User id
+     * @return true if user exists
+     */
+    @Transactional(readOnly = true)
+    public boolean exists(int id) {
+        return userRepository.existsById(id);
+    }
+
+    /**
+     * Check if user exists.
+     *
+     * @param username Username
+     * @return true if user exists
+     */
+    @Transactional(readOnly = true)
+    public boolean exists(String username) {
+        return find(username).isPresent();
+    }
+
+    /**
+     * Get all users.
      *
      * @return User ids.
      */
     @Transactional(readOnly = true)
-    public Set<Integer> getAllIds() {
-        return userRepository.findAllUserIds();
+    public Page<User> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    /**
+     * Get user.
+     *
+     * @param id User id
+     * @return {@link User}
+     */
+    @Transactional(readOnly = true)
+    public User get(int id) {
+        User user = find(id)
+            .orElseThrow(() -> new EntityNotFoundException("User " + id + " not found."));
+        return user;
+    }
+
+    /**
+     * Get user.
+     *
+     * @param username Username
+     * @return {@link User}
+     */
+    @Transactional(readOnly = true)
+    public User get(String username) {
+        User user = find(username)
+            .orElseThrow(() -> new EntityNotFoundException("User '" + username + "' not found."));
+        return user;
     }
 
     /**

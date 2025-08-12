@@ -61,12 +61,6 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.13</version>
-        <configuration>
-          <excludes>
-            <exclude>api/Application*</exclude>
-            <exclude>api/mapper/**</exclude>
-          </excludes>
-        </configuration>
         <reportSets>
           <reportSet>
             <reports>

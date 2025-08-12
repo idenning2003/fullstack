@@ -1,7 +1,7 @@
 package api.exceptions;
 
 /**
- * EntityNotFoundException.
+ * {@link EntityNotFoundException}.
  */
 public class EntityNotFoundException extends RuntimeException {
     /**

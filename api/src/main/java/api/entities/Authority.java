@@ -14,7 +14,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Authority.
+ * {@link Authority}.
  */
 @Data
 @Builder

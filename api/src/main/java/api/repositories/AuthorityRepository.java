@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import api.entities.Authority;
 
 /**
- * RoleRepository.
+ * {@link RoleRepository}.
  */
 @Repository
 public interface AuthorityRepository extends JpaRepository<Authority, Integer> {
@@ -18,5 +18,5 @@ public interface AuthorityRepository extends JpaRepository<Authority, Integer> {
      * @param authority authority name
      * @return {@link Optional} {@link Authority}
      */
-    Optional<Authority> findByAuthority(String authority);
+    public Optional<Authority> findByAuthority(String authority);
 }

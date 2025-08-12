@@ -2,7 +2,6 @@ package api.services;
 
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import api.dtos.AuthenticationDto;
 import api.dtos.LoginDto;
@@ -20,7 +20,7 @@ import api.entities.User;
 import api.exceptions.DuplicateEntityException;
 
 /**
- * AuthenticationService.
+ * {@link AuthenticationService}.
  */
 @Service
 public class AuthenticationService {
@@ -63,14 +63,14 @@ public class AuthenticationService {
      */
     @Transactional
     public AuthenticationDto register(RegisterDto register) {
-        if (StringUtils.isEmpty(register.getUsername())) {
-            throw new IllegalArgumentException("Username must not be null.");
+        if (!StringUtils.hasText(register.getUsername())) {
+            throw new IllegalArgumentException("Username must not be empty.");
         }
-        if (StringUtils.isEmpty(register.getPassword())) {
-            throw new IllegalArgumentException("Password must not be null.");
+        if (!StringUtils.hasText(register.getPassword())) {
+            throw new IllegalArgumentException("Password must not be empty.");
         }
         if (userService.exists(register.getUsername())) {
-            throw new DuplicateEntityException("Username '" + register.getUsername() + "' already taken.");
+            throw new DuplicateEntityException("Username '" + register.getUsername() + "' already exists.");
         }
 
         Role userRole = roleService.get("USER");

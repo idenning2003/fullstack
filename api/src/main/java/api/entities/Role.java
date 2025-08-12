@@ -14,11 +14,12 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Role.
+ * {@link Role}.
  */
 @Data
 @Builder
@@ -34,7 +35,7 @@ public class Role {
     @Column(unique = true)
     private String name;
 
-    @Builder.Default
+    @Default
     @ManyToMany
     @JoinTable(name = "roleAuthorities",
         joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"),

@@ -1,7 +1,6 @@
 package api.dtos;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * RoleDto.
+ * {@link RoleDto}.
  */
 @Data
 @Builder
@@ -18,6 +17,5 @@ import lombok.NoArgsConstructor;
 public class RoleDto {
     private Integer id;
     private String name;
-    @Builder.Default
-    private Set<AuthorityDto> authorities  = new HashSet<>();
+    private List<Integer> authorityIds;
 }

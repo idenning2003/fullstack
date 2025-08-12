@@ -1,5 +1,6 @@
 package api.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import api.repositories.AuthorityRepository;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * AuthorityService.
+ * {@link AuthorityService}.
  */
 @Slf4j
 @Service
@@ -21,15 +22,14 @@ public class AuthorityService {
     private AuthorityRepository authorityRepository;
 
     /**
-     * Get authority.
+     * Find authority.
      *
-     * @param authority Authority name
-     * @return {@link Authority}
+     * @param id Authority id
+     * @return {@link Optional} {@link Authority}
      */
     @Transactional(readOnly = true)
-    public Authority get(String authority) {
-        return authorityRepository.findByAuthority(authority)
-            .orElseThrow(() -> new EntityNotFoundException("Authority '" + authority + "' not found."));
+    public Optional<Authority> find(int id) {
+        return authorityRepository.findById(id);
     }
 
     /**
@@ -41,6 +41,41 @@ public class AuthorityService {
     @Transactional(readOnly = true)
     public Optional<Authority> find(String authority) {
         return authorityRepository.findByAuthority(authority);
+    }
+
+
+    /**
+     * Get all authorities.
+     *
+     * @return All authorities
+     */
+    @Transactional(readOnly = true)
+    public List<Authority> getAll() {
+        return authorityRepository.findAll();
+    }
+
+    /**
+     * Get authority.
+     *
+     * @param id Authority id
+     * @return {@link Authority}
+     */
+    @Transactional(readOnly = true)
+    public Authority get(int id) {
+        return find(id)
+            .orElseThrow(() -> new EntityNotFoundException("Authority " + id + " not found."));
+    }
+
+    /**
+     * Get authority.
+     *
+     * @param authority Authority name
+     * @return {@link Authority}
+     */
+    @Transactional(readOnly = true)
+    public Authority get(String authority) {
+        return find(authority)
+            .orElseThrow(() -> new EntityNotFoundException("Authority '" + authority + "' not found."));
     }
 
     /**

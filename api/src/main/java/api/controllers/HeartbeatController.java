@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 /**
- * HeartbeatController.
+ * {@link HeartbeatController}.
  */
 @RestController
 @RequestMapping("")
@@ -24,8 +24,11 @@ public class HeartbeatController {
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            content = @Content(schema = @Schema(implementation = Boolean.class), mediaType = "application/json")
-        )
+            content = @Content(
+                schema = @Schema(implementation = Boolean.class),
+                mediaType = "application/json"
+            )
+        ),
     })
     public boolean heartbeat() {
         return true;
