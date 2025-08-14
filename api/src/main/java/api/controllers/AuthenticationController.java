@@ -36,7 +36,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @RestController
 @RequestMapping("/authenticate")
-@Tag(name = "Authentication", description = "Endpoints for users to login or register.")
+@Tag(name = "Authentication", description = "Handles user login and registration.")
 public class AuthenticationController {
     @Autowired
     private TokenService tokenService;
