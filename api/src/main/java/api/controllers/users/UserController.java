@@ -1,4 +1,4 @@
-package api.controllers;
+package api.controllers.users;
 
 import java.util.List;
 import java.util.Objects;
@@ -86,6 +86,13 @@ public class UserController {
             )
         ),
         @ApiResponse(
+            responseCode = "400",
+            content = @Content(
+                schema = @Schema(implementation = ErrorDto.class),
+                mediaType = "application/json"
+            )
+        ),
+        @ApiResponse(
             responseCode = "409",
             content = @Content(
                 schema = @Schema(implementation = ErrorDto.class),
@@ -94,6 +101,10 @@ public class UserController {
         ),
     })
     public UserDto updateMe(@AuthenticationPrincipal User user, @RequestBody UserDto userDto) {
+        if (userDto.getUsername() != null && !StringUtils.hasText(userDto.getUsername())) {
+            throw new IllegalArgumentException("Username must not be empty.");
+        }
+
         if (StringUtils.hasText(userDto.getUsername())
             && !Objects.equals(userDto.getUsername(), user.getUsername())
             && userService.exists(userDto.getUsername())
@@ -233,6 +244,10 @@ public class UserController {
         ),
     })
     public UserDto updateUser(@PathVariable int id, @RequestBody UserDto userDto) {
+        if (userDto.getUsername() != null && !StringUtils.hasText(userDto.getUsername())) {
+            throw new IllegalArgumentException("Username must not be empty.");
+        }
+
         User user = userService.get(id);
         if (StringUtils.hasText(userDto.getUsername())
             && !Objects.equals(userDto.getUsername(), user.getUsername())

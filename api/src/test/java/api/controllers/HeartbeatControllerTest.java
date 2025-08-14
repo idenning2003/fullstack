@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
  */
 public class HeartbeatControllerTest extends BasicControllerTest {
     /**
-     * {@link HeartbeatController#heartbeat()} test.
+     * {@link HeartbeatController#heartbeat} test.
      */
     @Test
     public void shouldReturnTrue_whenHeartbeat() {

@@ -99,8 +99,6 @@ public abstract class RoleMapper {
         if (ids == null) {
             return new HashSet<>();
         }
-        return ids.stream()
-            .map(authorityService::get)
-            .collect(Collectors.toSet());
+        return new HashSet<>(authorityService.get(ids));
     }
 }

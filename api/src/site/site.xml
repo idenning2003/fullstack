@@ -23,7 +23,6 @@
     <menu name="Reports">
       <item name="OpenAPI" href="openapi.html"/>
       <item name="Cypress" href="cypress.html"/>
-      <item name="Checkstyle" href="checkstyle.html"/>
       <item name="JaCoCo" href="jacoco/index.html"/>
     </menu>
     <menu ref="reports"/>

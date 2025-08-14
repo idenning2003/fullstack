@@ -32,7 +32,7 @@ public class AuthenticationControllerTest extends BasicControllerTest {
     private String adminPassword;
 
     /**
-     * {@link AuthenticationController#login()} test.
+     * {@link AuthenticationController#login} test.
      */
     @Nested
     public class Login {
@@ -106,7 +106,7 @@ public class AuthenticationControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link AuthenticationController#register()} test.
+     * {@link AuthenticationController#register} test.
      */
     @Nested
     public class Register {

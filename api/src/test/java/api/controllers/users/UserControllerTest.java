@@ -1,4 +1,4 @@
-package api.controllers;
+package api.controllers.users;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,12 +27,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import api.controllers.AuthenticationController;
+import api.controllers.BasicControllerTest;
 import api.dtos.AuthenticationDto;
 import api.dtos.ErrorDto;
 import api.dtos.RegisterDto;
 import api.dtos.UserDto;
 import api.entities.User;
-import api.services.AuthenticationService;
 import api.services.TokenService;
 import api.services.UserService;
 import io.jsonwebtoken.Jwts;
@@ -43,16 +44,12 @@ import io.jsonwebtoken.Jwts;
 @SuppressWarnings("null")
 public class UserControllerTest extends BasicControllerTest {
     @Autowired
-    private AuthenticationService authenticationService;
-    @Autowired
     private UserService userService;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private AuthenticationController authenticationController;
 
-    @Value("${api.admin.username:admin}")
-    private String adminUsername;
-    @Value("${api.admin.password:password}")
-    private String adminPassword;
     @Value("${jwt.token.expires-minutes:1440}")
     private int expires;
     @Value("${pagination.default-page-size:10}")
@@ -61,7 +58,7 @@ public class UserControllerTest extends BasicControllerTest {
     private int maxPageSize;
 
     /**
-     * {@link UserController#getMe()} test.
+     * {@link UserController#getMe} test.
      */
     @Nested
     public class GetMe {
@@ -71,7 +68,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void shouldGetMe_whenJwtAuthentication() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -102,7 +99,7 @@ public class UserControllerTest extends BasicControllerTest {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
             String password = "password";
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password(password)
@@ -147,7 +144,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should401_whenJwtAuthenticationExpires() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -181,7 +178,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should401_whenJwtAuthenticationInvalid() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -214,7 +211,7 @@ public class UserControllerTest extends BasicControllerTest {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
             String password = "password";
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password(password)
@@ -243,7 +240,7 @@ public class UserControllerTest extends BasicControllerTest {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
             String password = "password";
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password(password)
@@ -269,17 +266,17 @@ public class UserControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link UserController#updateMe()} test.
+     * {@link UserController#updateMe} test.
      */
     @Nested
     public class UpdateMe {
         private static final String ENDPOINT = "/users/me";
 
         @Test
-        public void shoulUpdateMe_whenSomeNullValues() {
+        public void shouldUpdateMe_whenSomeNullValues() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -316,10 +313,10 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void shoulUpdateMe_whenIdIncorrect() {
+        public void shouldUpdateMe_whenIdIncorrect() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -357,10 +354,10 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void shoulUpdateMe_whenUsernameChanged() {
+        public void shouldUpdateMe_whenUsernameChanged() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -399,17 +396,17 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void shoulUpdateMe_whenUsernameNotChanged() {
+        public void shouldUpdateMe_whenUsernameNotChanged() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
                     .build()
             );
 
-            // GIVEN: Updated user info with new username
+            // GIVEN: Updated user info with same username
             String firstname = "Foo";
             String lastname = "Bar";
             UserDto updated = UserDto.builder()
@@ -440,17 +437,52 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
+        public void should400_whenUsernameEmpty() {
+            // GIVEN: New user registered
+            String username = "user_" + UUID.randomUUID();
+            AuthenticationDto auth = authenticationController.register(
+                RegisterDto.builder()
+                    .username(username)
+                    .password("password")
+                    .build()
+            );
+
+            // GIVEN: Updated username to empty
+            UserDto updated = UserDto.builder()
+                .username("")
+                .build();
+
+            // GIVEN: JWT authentication
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(auth.getAccessToken());
+            HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
+
+            // WHEN: Update me
+            ResponseEntity<ErrorDto> responseEntity = testRestTemplate.exchange(
+                url + ENDPOINT, HttpMethod.PUT, request, new ParameterizedTypeReference<ErrorDto>() {}
+            );
+
+            // THEN: Responds bad request
+            assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode()),
+                () -> assertNotNull(responseEntity.getBody()),
+                () -> assertEquals(clock.instant(), responseEntity.getBody().getTimestamp()),
+                () -> assertEquals("Username must not be empty.", responseEntity.getBody().getMessage())
+            );
+        }
+
+        @Test
         public void should409_whenDuplicateUsername() {
             // GIVEN: Two new users registered
             String username1 = "user_" + UUID.randomUUID();
             String username2 = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username1)
                     .password("password")
                     .build()
             );
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username2)
                     .password("password")
@@ -490,7 +522,7 @@ public class UserControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link UserController#deleteMe()} test.
+     * {@link UserController#deleteMe} test.
      */
     @Nested
     public class DeleteMe {
@@ -500,7 +532,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void shouldDeleteMe_whenJwtAuthentication() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -533,7 +565,7 @@ public class UserControllerTest extends BasicControllerTest {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
             String password = "password";
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password(password)
@@ -565,7 +597,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should401_whenNoAuthentication() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -593,7 +625,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should401_whenJwtAuthenticationInvalid() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -625,7 +657,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should401_whenJwtAuthenticationExpires() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -664,7 +696,7 @@ public class UserControllerTest extends BasicControllerTest {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
             String password = "password";
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -697,7 +729,7 @@ public class UserControllerTest extends BasicControllerTest {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
             String password = "password";
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -728,7 +760,7 @@ public class UserControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link UserController#getUsers()} test.
+     * {@link UserController#getUsers} test.
      */
     @Nested
     public class GetUsers {
@@ -737,11 +769,8 @@ public class UserControllerTest extends BasicControllerTest {
         @Test
         public void shouldGetUsers_whenNoQueryParameters() {
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // WHEN: Get users
@@ -769,11 +798,8 @@ public class UserControllerTest extends BasicControllerTest {
         @Test
         public void shouldGetUsers_whenQueryParameters() {
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: Request with paramters
@@ -807,11 +833,8 @@ public class UserControllerTest extends BasicControllerTest {
         @Test
         public void shouldGetUsers_whenQueryParametersExceedLimit() {
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: Request with paramters
@@ -846,7 +869,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should403_whenUnauthorized() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -874,7 +897,7 @@ public class UserControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link UserController#getUser()} test.
+     * {@link UserController#getUser} test.
      */
     @Nested
     public class GetUser {
@@ -884,7 +907,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void shouldGetUser() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -893,11 +916,8 @@ public class UserControllerTest extends BasicControllerTest {
             User user = userService.get(username);
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: New user id in path
@@ -924,7 +944,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should403_whenUnauthorized() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -961,7 +981,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should404_whenNonexistent() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -970,11 +990,8 @@ public class UserControllerTest extends BasicControllerTest {
             User user = userService.get(username);
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: Wrong user id in path
@@ -1000,17 +1017,17 @@ public class UserControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link UserController#updateUser()} test.
+     * {@link UserController#updateUser} test.
      */
     @Nested
     public class UpdateUser {
         private static final String ENDPOINT = "/users/{id}";
 
         @Test
-        public void shoulUpdateUser_whenSomeNullValues() {
+        public void shouldUpdateUser_whenSomeNullValues() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1027,11 +1044,8 @@ public class UserControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
 
             // GIVEN: New user id in path
@@ -1057,10 +1071,10 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void shoulUpdateUser_whenBodyIdIncorrect() {
+        public void shouldUpdateUser_whenBodyIdIncorrect() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1078,11 +1092,8 @@ public class UserControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
 
             // GIVEN: New user id in path
@@ -1108,10 +1119,10 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void shoulUpdateUser_whenUsernameChanged() {
+        public void shouldUpdateUser_whenUsernameChanged() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1130,11 +1141,8 @@ public class UserControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
 
             // GIVEN: New user id in path
@@ -1160,10 +1168,10 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void shoulUpdateUser_whenUsernameNotChanged() {
+        public void shouldUpdateUser_whenUsernameNotChanged() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1171,7 +1179,7 @@ public class UserControllerTest extends BasicControllerTest {
             );
             User user = userService.get(username);
 
-            // GIVEN: Updated user info with new username
+            // GIVEN: Updated user info with same username
             String firstname = "Foo";
             String lastname = "Bar";
             UserDto updated = UserDto.builder()
@@ -1181,11 +1189,8 @@ public class UserControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
 
             // GIVEN: New user id in path
@@ -1211,10 +1216,52 @@ public class UserControllerTest extends BasicControllerTest {
         }
 
         @Test
+        public void should400_whenUsernameEmpty() {
+            // GIVEN: New user registered
+            String username = "user_" + UUID.randomUUID();
+            authenticationController.register(
+                RegisterDto.builder()
+                    .username(username)
+                    .password("password")
+                    .build()
+            );
+            User user = userService.get(username);
+
+            // GIVEN: Updated username to empty
+            UserDto updated = UserDto.builder()
+                .username("")
+                .build();
+
+            // GIVEN: Admin authentication header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(adminAuth.getAccessToken());
+            HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
+
+            // GIVEN: New user id in path
+            URI uri = UriComponentsBuilder.fromUriString(url)
+                .path(ENDPOINT)
+                .buildAndExpand(user.getId())
+                .toUri();
+
+            // WHEN: Update user
+            ResponseEntity<ErrorDto> responseEntity = testRestTemplate.exchange(
+                uri, HttpMethod.PUT, request, new ParameterizedTypeReference<ErrorDto>() {}
+            );
+
+            // THEN: Responds bad request
+            assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode()),
+                () -> assertNotNull(responseEntity.getBody()),
+                () -> assertEquals(clock.instant(), responseEntity.getBody().getTimestamp()),
+                () -> assertEquals("Username must not be empty.", responseEntity.getBody().getMessage())
+            );
+        }
+
+        @Test
         public void should403_whenUnauthorized() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1254,7 +1301,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should404_whenNonexistent() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1271,11 +1318,8 @@ public class UserControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
 
             // GIVEN: Wrong user id in path
@@ -1304,13 +1348,13 @@ public class UserControllerTest extends BasicControllerTest {
             // GIVEN: Two new users registered
             String username1 = "user_" + UUID.randomUUID();
             String username2 = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username1)
                     .password("password")
                     .build()
             );
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username2)
                     .password("password")
@@ -1328,11 +1372,8 @@ public class UserControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<UserDto> request = new HttpEntity<>(updated, headers);
 
             // GIVEN: New user id in path
@@ -1360,7 +1401,7 @@ public class UserControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link UserController#deleteUser()} test.
+     * {@link UserController#deleteUser} test.
      */
     @Nested
     public class DeleteUser {
@@ -1370,7 +1411,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void shouldDeleteUser() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1379,11 +1420,8 @@ public class UserControllerTest extends BasicControllerTest {
             User user = userService.get(username);
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: New user id in path
@@ -1412,7 +1450,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should403_whenUnauthorized() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1449,7 +1487,7 @@ public class UserControllerTest extends BasicControllerTest {
         public void should404_whenNonexistent() {
             // GIVEN: New user registered
             String username = "user_" + UUID.randomUUID();
-            authenticationService.register(
+            authenticationController.register(
                 RegisterDto.builder()
                     .username(username)
                     .password("password")
@@ -1458,11 +1496,8 @@ public class UserControllerTest extends BasicControllerTest {
             User user = userService.get(username);
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: Wrong user id in path

@@ -76,6 +76,17 @@ public class RoleService {
     }
 
     /**
+     * Get roles.
+     *
+     * @param ids Role ids
+     * @return {@link List} of {@link Role}
+     */
+    @Transactional(readOnly = true)
+    public List<Role> get(Iterable<Integer> ids) {
+        return roleRepository.findAllById(ids);
+    }
+
+    /**
      * Get role.
      *
      * @param id Role id

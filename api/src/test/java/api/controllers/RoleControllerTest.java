@@ -16,14 +16,12 @@ import java.util.UUID;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import api.dtos.AuthenticationDto;
@@ -33,10 +31,8 @@ import api.dtos.RoleDto;
 import api.entities.Authority;
 import api.entities.Role;
 import api.mapper.RoleMapper;
-import api.services.AuthenticationService;
 import api.services.AuthorityService;
 import api.services.RoleService;
-import api.services.TokenService;
 
 /**
  * {@link RoleController} test.
@@ -48,19 +44,12 @@ public class RoleControllerTest extends BasicControllerTest {
     @Autowired
     private AuthorityService authorityService;
     @Autowired
-    private TokenService tokenService;
-    @Autowired
-    private AuthenticationService authenticationService;
+    private AuthenticationController authenticationController;
     @Autowired
     private RoleMapper roleMapper;
 
-    @Value("${api.admin.username:admin}")
-    private String adminUsername;
-    @Value("${api.admin.password:password}")
-    private String adminPassword;
-
     /**
-     * {@link RoleController#getRoles()} test.
+     * {@link RoleController#getRoles} test.
      */
     @Nested
     public class GetRoles {
@@ -69,19 +58,16 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void shouldGetRoles() {
             // GIVEN: New authority exists
-            String newAuthorityName = "authority_" + UUID.randomUUID();
-            Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
+            String authorityName = "authority_" + UUID.randomUUID();
+            Authority authority = authorityService.save(Authority.builder().authority(authorityName).build());
 
             // GIVEN: New role exists with new authority
-            String newRoleName = "role_" + UUID.randomUUID();
-            roleService.save(Role.builder().name(newRoleName).authorities(Set.of(newAuthority)).build());
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).authorities(Set.of(authority)).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // WHEN: Get roles
@@ -94,17 +80,17 @@ public class RoleControllerTest extends BasicControllerTest {
                 () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
                 () -> assertTrue(
-                    responseEntity.getBody().stream().anyMatch(a -> newRoleName.equals(a.getName())),
-                    "Expected role '" + newRoleName + "' not found"
+                    responseEntity.getBody().stream().anyMatch(a -> roleName.equals(a.getName())),
+                    "Expected role '" + roleName + "' not found"
                 ),
                 () -> assertTrue(
                     responseEntity.getBody().stream()
                         .anyMatch(a -> {
-                            return newRoleName.equals(a.getName())
+                            return role.getId() == a.getId()
                                 && a.getAuthorityIds().size() == 1
-                                && a.getAuthorityIds().contains(newAuthority.getId());
+                                && a.getAuthorityIds().contains(authority.getId());
                         }),
-                    "Expected authority '" + newAuthorityName + "' not found in role '" + newRoleName + "'"
+                    "Expected authority '" + authorityName + "' not found in role '" + roleName + "'"
                 )
             );
         }
@@ -112,7 +98,7 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void should403_whenUnauthorized() {
             // GIVEN: User authentication header
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username("user_" + UUID.randomUUID())
                     .password("password")
@@ -138,7 +124,7 @@ public class RoleControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link RoleController#getRole()} test.
+     * {@link RoleController#getRole} test.
      */
     @Nested
     public class GetRole {
@@ -147,24 +133,21 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void shouldGetRole() {
             // GIVEN: New authority exists
-            String newAuthorityName = "authority_" + UUID.randomUUID();
-            Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
+            String authorityName = "authority_" + UUID.randomUUID();
+            Authority authority = authorityService.save(Authority.builder().authority(authorityName).build());
 
             // GIVEN: New role exists with new authority
-            String newRoleName = "role_" + UUID.randomUUID();
-            Role newRole = roleService.save(Role.builder().name(newRoleName).authorities(Set.of(newAuthority)).build());
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).authorities(Set.of(authority)).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
                 .path(ENDPOINT)
-                .buildAndExpand(newRole.getId())
+                .buildAndExpand(role.getId())
                 .toUri();
 
             // WHEN: Get role
@@ -176,11 +159,11 @@ public class RoleControllerTest extends BasicControllerTest {
             assertAll(
                 () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
-                () -> assertEquals(roleMapper.toDto(newRole), responseEntity.getBody()),
+                () -> assertEquals(roleMapper.toDto(role), responseEntity.getBody()),
                 () -> assertEquals(1, responseEntity.getBody().getAuthorityIds().size()),
                 () -> assertTrue(
-                    responseEntity.getBody().getAuthorityIds().contains(newAuthority.getId()),
-                    "Expected authority '" + newAuthorityName + "' not found in role '" + newRoleName + "'"
+                    responseEntity.getBody().getAuthorityIds().contains(authority.getId()),
+                    "Expected authority '" + authorityName + "' not found in role '" + roleName + "'"
                 )
             );
         }
@@ -188,11 +171,11 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void should403_whenUnauthorized() {
             // GIVEN: New role exists
-            String newRoleName = "role_" + UUID.randomUUID();
-            Role newRole = roleService.save(Role.builder().name(newRoleName).build());
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).build());
 
             // GIVEN: User authentication header
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username("user_" + UUID.randomUUID())
                     .password("password")
@@ -204,7 +187,7 @@ public class RoleControllerTest extends BasicControllerTest {
 
             URI uri = UriComponentsBuilder.fromUriString(url)
                 .path(ENDPOINT)
-                .buildAndExpand(newRole.getId())
+                .buildAndExpand(role.getId())
                 .toUri();
 
             // WHEN: Get role
@@ -224,19 +207,16 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void should404_whenNonexistent() {
             // GIVEN: New role exists
-            String newRoleName = "role_" + UUID.randomUUID();
-            Role newRole = roleService.save(Role.builder().name(newRoleName).build());
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: Wrong role id
-            int wrongId = newRole.getId() + 1;
+            int wrongId = role.getId() + 1;
             URI uri = UriComponentsBuilder.fromUriString(url)
                 .path(ENDPOINT)
                 .buildAndExpand(wrongId)
@@ -258,7 +238,7 @@ public class RoleControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link RoleController#createRole()} test.
+     * {@link RoleController#createRole} test.
      */
     @Nested
     public class CreateRole {
@@ -267,22 +247,19 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void shouldCreateRole() {
             // GIVEN: New authority exists
-            String newAuthorityName = "authority_" + UUID.randomUUID();
-            Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
+            String authorityName = "authority_" + UUID.randomUUID();
+            Authority authority = authorityService.save(Authority.builder().authority(authorityName).build());
 
             // GIVEN: Role with new authority id
             String roleName = "role_" + UUID.randomUUID();
             RoleDto role = RoleDto.builder()
                 .name(roleName)
-                .authorityIds(List.of(newAuthority.getId()))
+                .authorityIds(List.of(authority.getId()))
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(role, headers);
 
             // WHEN: Create role
@@ -295,7 +272,40 @@ public class RoleControllerTest extends BasicControllerTest {
                 () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
                 () -> assertEquals(roleName, responseEntity.getBody().getName()),
-                () -> assertEquals(List.of(newAuthority.getId()), responseEntity.getBody().getAuthorityIds())
+                () -> assertEquals(List.of(authority.getId()), responseEntity.getBody().getAuthorityIds())
+            );
+        }
+
+        @Test
+        public void shouldCreateWithoutAuthority_whenAuthorityNonexistent() {
+            // GIVEN: New authority exists
+            String authorityName = "authority_" + UUID.randomUUID();
+            Authority authority = authorityService.save(Authority.builder().authority(authorityName).build());
+
+            // GIVEN: Role with wrong authority id
+            int wrongId = authority.getId() + 1;
+            String roleName = "role_" + UUID.randomUUID();
+            RoleDto role = RoleDto.builder()
+                .name(roleName)
+                .authorityIds(List.of(wrongId))
+                .build();
+
+            // GIVEN: Admin authentication header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(adminAuth.getAccessToken());
+            HttpEntity<RoleDto> request = new HttpEntity<>(role, headers);
+
+            // WHEN: Create role
+            ResponseEntity<RoleDto> responseEntity = testRestTemplate.exchange(
+                url + ENDPOINT, HttpMethod.POST, request, new ParameterizedTypeReference<RoleDto>() {}
+            );
+
+            // THEN: New role should be created without authorities
+            assertAll(
+                () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+                () -> assertNotNull(responseEntity.getBody()),
+                () -> assertEquals(roleName, responseEntity.getBody().getName()),
+                () -> assertEquals(Collections.emptyList(), responseEntity.getBody().getAuthorityIds())
             );
         }
 
@@ -308,7 +318,7 @@ public class RoleControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: User authentication header
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username("user_" + UUID.randomUUID())
                     .password("password")
@@ -333,25 +343,15 @@ public class RoleControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void should404_whenAuthorityNonexistent() {
-            // GIVEN: New authority exists
-            String newAuthorityName = "authority_" + UUID.randomUUID();
-            Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
-
-            // GIVEN: Role with wrong authority id
-            int wrongId = newAuthority.getId() + 1;
-            String roleName = "role_" + UUID.randomUUID();
+        public void should400_whenNameEmpty() {
+            // GIVEN: Role with empty name
             RoleDto role = RoleDto.builder()
-                .name(roleName)
-                .authorityIds(List.of(wrongId))
+                .name("")
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(role, headers);
 
             // WHEN: Create role
@@ -359,32 +359,29 @@ public class RoleControllerTest extends BasicControllerTest {
                 url + ENDPOINT, HttpMethod.POST, request, new ParameterizedTypeReference<ErrorDto>() {}
             );
 
-            // THEN: Responds not found
+            // THEN: Responds bad request
             assertAll(
-                () -> assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode()),
+                () -> assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
                 () -> assertEquals(clock.instant(), responseEntity.getBody().getTimestamp()),
-                () -> assertEquals("Authority " + wrongId + " not found.", responseEntity.getBody().getMessage())
+                () -> assertEquals("Role name must not be empty.", responseEntity.getBody().getMessage())
             );
         }
 
         @Test
         public void should409_whenDuplicateRoleName() {
             // GIVEN: Role exists
-            String newRoleName = "role_" + UUID.randomUUID();
-            roleService.save(Role.builder().name(newRoleName).build());
+            String roleName = "role_" + UUID.randomUUID();
+            roleService.save(Role.builder().name(roleName).build());
 
             // GIVEN: Role with duplicate name
             RoleDto role = RoleDto.builder()
-                .name(newRoleName)
+                .name(roleName)
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(role, headers);
 
             // WHEN: Create role
@@ -397,13 +394,13 @@ public class RoleControllerTest extends BasicControllerTest {
                 () -> assertEquals(HttpStatus.CONFLICT, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
                 () -> assertEquals(clock.instant(), responseEntity.getBody().getTimestamp()),
-                () -> assertEquals("Role '" + newRoleName + "' already exists.", responseEntity.getBody().getMessage())
+                () -> assertEquals("Role '" + roleName + "' already exists.", responseEntity.getBody().getMessage())
             );
         }
     }
 
     /**
-     * {@link RoleController#updateRole()} test.
+     * {@link RoleController#updateRole} test.
      */
     @Nested
     public class UpdateRole {
@@ -420,17 +417,14 @@ public class RoleControllerTest extends BasicControllerTest {
             Role role = roleService.save(Role.builder().name(oldRoleName).authorities(Set.of(authority)).build());
 
             // GIVEN: Updated name, but some values null (id, authorities)
-            String newRoleName = "role_" + UUID.randomUUID();
+            String roleName = "role_" + UUID.randomUUID();
             RoleDto updated = RoleDto.builder()
-                .name(newRoleName)
+                .name(roleName)
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
@@ -447,7 +441,7 @@ public class RoleControllerTest extends BasicControllerTest {
             assertAll(
                 () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
-                () -> assertEquals(newRoleName, responseEntity.getBody().getName()),
+                () -> assertEquals(roleName, responseEntity.getBody().getName()),
                 () -> assertEquals(1, responseEntity.getBody().getAuthorityIds().size()),
                 () -> assertTrue(
                     responseEntity.getBody().getAuthorityIds().contains(authority.getId()),
@@ -472,11 +466,8 @@ public class RoleControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
@@ -513,18 +504,15 @@ public class RoleControllerTest extends BasicControllerTest {
             Role role = roleService.save(Role.builder().name(oldRoleName).authorities(Set.of(authority)).build());
 
             // GIVEN: Updated name, but some values null (id, authorities)
-            String newRoleName = "role_" + UUID.randomUUID();
+            String roleName = "role_" + UUID.randomUUID();
             RoleDto updated = RoleDto.builder()
                 .id(role.getId() + 1)
-                .name(newRoleName)
+                .name(roleName)
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
@@ -541,7 +529,7 @@ public class RoleControllerTest extends BasicControllerTest {
             assertAll(
                 () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
-                () -> assertEquals(newRoleName, responseEntity.getBody().getName()),
+                () -> assertEquals(roleName, responseEntity.getBody().getName()),
                 () -> assertEquals(1, responseEntity.getBody().getAuthorityIds().size()),
                 () -> assertTrue(
                     responseEntity.getBody().getAuthorityIds().contains(authority.getId()),
@@ -567,11 +555,8 @@ public class RoleControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
@@ -598,19 +583,94 @@ public class RoleControllerTest extends BasicControllerTest {
         }
 
         @Test
+        public void shouldUpdateWithoutAuthority_whenAuthorityNonexistent() {
+            // GIVEN: New authority exists
+            String authorityName = "authority_" + UUID.randomUUID();
+            Authority authority = authorityService.save(Authority.builder().authority(authorityName).build());
+
+            // GIVEN: New role exists
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).build());
+
+            // GIVEN: Updated authorities with wrong id
+            int wrongId = authority.getId() + 1;
+            RoleDto updated = RoleDto.builder()
+                .authorityIds(List.of(wrongId))
+                .build();
+
+            // GIVEN: Admin authentication header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(adminAuth.getAccessToken());
+            HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
+
+            URI uri = UriComponentsBuilder.fromUriString(url)
+                .path(ENDPOINT)
+                .buildAndExpand(role.getId())
+                .toUri();
+
+            // WHEN: Update role
+            ResponseEntity<RoleDto> responseEntity = testRestTemplate.exchange(
+                uri, HttpMethod.PUT, request, new ParameterizedTypeReference<RoleDto>() {}
+            );
+
+            // THEN: Updated role should be returned
+            assertAll(
+                () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+                () -> assertNotNull(responseEntity.getBody()),
+                () -> assertEquals(roleName, responseEntity.getBody().getName()),
+                () -> assertEquals(0, responseEntity.getBody().getAuthorityIds().size())
+            );
+        }
+
+        @Test
+        public void should400_whenNameEmpty() {
+            // GIVEN: New role exists
+            String oldRoleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(oldRoleName).build());
+
+            // GIVEN: Updated name to empty
+            RoleDto updated = RoleDto.builder()
+                .name("")
+                .build();
+
+            // GIVEN: Admin authentication header
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(adminAuth.getAccessToken());
+            HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
+
+            URI uri = UriComponentsBuilder.fromUriString(url)
+                .path(ENDPOINT)
+                .buildAndExpand(role.getId())
+                .toUri();
+
+            // WHEN: Update role
+            ResponseEntity<ErrorDto> responseEntity = testRestTemplate.exchange(
+                uri, HttpMethod.PUT, request, new ParameterizedTypeReference<ErrorDto>() {}
+            );
+
+            // THEN: Responds bad request
+            assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode()),
+                () -> assertNotNull(responseEntity.getBody()),
+                () -> assertEquals(clock.instant(), responseEntity.getBody().getTimestamp()),
+                () -> assertEquals("Role name must not be empty.", responseEntity.getBody().getMessage())
+            );
+        }
+
+        @Test
         public void should403_whenUnauthorized() {
             // GIVEN: New role exists
             String oldRoleName = "role_" + UUID.randomUUID();
             Role role = roleService.save(Role.builder().name(oldRoleName).build());
 
             // GIVEN: Updated name
-            String newRoleName = "role_" + UUID.randomUUID();
+            String roleName = "role_" + UUID.randomUUID();
             RoleDto updated = RoleDto.builder()
-                .name(newRoleName)
+                .name(roleName)
                 .build();
 
             // GIVEN: User authentication header
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username("user_" + UUID.randomUUID())
                     .password("password")
@@ -640,32 +700,27 @@ public class RoleControllerTest extends BasicControllerTest {
         }
 
         @Test
-        public void should404_whenAuthorityNonexistent() {
-            // GIVEN: New authority exists
-            String authorityName = "authority_" + UUID.randomUUID();
-            Authority authority = authorityService.save(Authority.builder().authority(authorityName).build());
-
+        public void should404_whenRoleNonexistent() {
             // GIVEN: New role exists
-            String roleName = "role_" + UUID.randomUUID();
-            Role role = roleService.save(Role.builder().name(roleName).build());
+            String oldRoleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(oldRoleName).build());
 
-            // GIVEN: Updated authorities with wrong id
-            int wrongId = authority.getId() + 1;
+            // GIVEN: Updated name
+            String roleName = "role_" + UUID.randomUUID();
             RoleDto updated = RoleDto.builder()
-                .authorityIds(List.of(wrongId))
+                .name(roleName)
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
 
+            // GIVEN: Wrong role id
+            int wrongId = role.getId() + 1;
             URI uri = UriComponentsBuilder.fromUriString(url)
                 .path(ENDPOINT)
-                .buildAndExpand(role.getId())
+                .buildAndExpand(wrongId)
                 .toUri();
 
             // WHEN: Update role
@@ -678,7 +733,7 @@ public class RoleControllerTest extends BasicControllerTest {
                 () -> assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode()),
                 () -> assertNotNull(responseEntity.getBody()),
                 () -> assertEquals(clock.instant(), responseEntity.getBody().getTimestamp()),
-                () -> assertEquals("Authority " + wrongId + " not found.", responseEntity.getBody().getMessage())
+                () -> assertEquals("Role " + wrongId + " not found.", responseEntity.getBody().getMessage())
             );
         }
 
@@ -696,11 +751,8 @@ public class RoleControllerTest extends BasicControllerTest {
                 .build();
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<RoleDto> request = new HttpEntity<>(updated, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
@@ -724,7 +776,7 @@ public class RoleControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link RoleController#deleteRole()} test.
+     * {@link RoleController#deleteRole} test.
      */
     @Nested
     public class DeleteRole {
@@ -733,24 +785,21 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void shouldDeleteRole() {
             // GIVEN: New authority exists
-            String newAuthorityName = "authority_" + UUID.randomUUID();
-            Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
+            String authorityName = "authority_" + UUID.randomUUID();
+            Authority authority = authorityService.save(Authority.builder().authority(authorityName).build());
 
             // GIVEN: New role exists with new authority
-            String newRoleName = "role_" + UUID.randomUUID();
-            Role newRole = roleService.save(Role.builder().name(newRoleName).authorities(Set.of(newAuthority)).build());
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).authorities(Set.of(authority)).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
                 .path(ENDPOINT)
-                .buildAndExpand(newRole.getId())
+                .buildAndExpand(role.getId())
                 .toUri();
 
             // WHEN: Delete role
@@ -763,8 +812,8 @@ public class RoleControllerTest extends BasicControllerTest {
                 () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
                 () -> assertNull(responseEntity.getBody()),
                 () -> assertFalse(
-                    roleService.exists(newRoleName),
-                    "Unexpected user '" + newRoleName + "' found"
+                    roleService.exists(roleName),
+                    "Unexpected user '" + roleName + "' found"
                 )
             );
         }
@@ -772,11 +821,11 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void should403_whenUnauthorized() {
             // GIVEN: New role exists
-            String newRoleName = "role_" + UUID.randomUUID();
-            Role newRole = roleService.save(Role.builder().name(newRoleName).build());
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).build());
 
             // GIVEN: User authentication header
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username("user_" + UUID.randomUUID())
                     .password("password")
@@ -788,7 +837,7 @@ public class RoleControllerTest extends BasicControllerTest {
 
             URI uri = UriComponentsBuilder.fromUriString(url)
                 .path(ENDPOINT)
-                .buildAndExpand(newRole.getId())
+                .buildAndExpand(role.getId())
                 .toUri();
 
             // WHEN: Delete role
@@ -808,19 +857,16 @@ public class RoleControllerTest extends BasicControllerTest {
         @Test
         public void should404_whenNonexistent() {
             // GIVEN: New role exists
-            String newRoleName = "role_" + UUID.randomUUID();
-            Role newRole = roleService.save(Role.builder().name(newRoleName).build());
+            String roleName = "role_" + UUID.randomUUID();
+            Role role = roleService.save(Role.builder().name(roleName).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: Wrong role id
-            int wrongId = newRole.getId() + 1;
+            int wrongId = role.getId() + 1;
             URI uri = UriComponentsBuilder.fromUriString(url)
                 .path(ENDPOINT)
                 .buildAndExpand(wrongId)

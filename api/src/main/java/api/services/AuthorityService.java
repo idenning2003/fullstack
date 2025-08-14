@@ -55,6 +55,17 @@ public class AuthorityService {
     }
 
     /**
+     * Get authorities.
+     *
+     * @param ids Authority ids
+     * @return {@link List} of {@link Authority}
+     */
+    @Transactional(readOnly = true)
+    public List<Authority> get(Iterable<Integer> ids) {
+        return authorityRepository.findAllById(ids);
+    }
+
+    /**
      * Get authority.
      *
      * @param id Authority id

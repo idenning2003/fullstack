@@ -1,13 +1,12 @@
-package api.controllers;
+package api.controllers.users;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,10 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import api.dtos.ErrorDto;
 import api.dtos.RoleDto;
-import api.entities.Role;
-import api.exceptions.DuplicateEntityException;
+import api.entities.User;
 import api.mapper.RoleMapper;
 import api.services.RoleService;
+import api.services.UserService;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,24 +29,27 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 /**
- * {@link RoleController}.
+ * {@link UserRoleController}.
  */
 @RestController
-@RequestMapping("/roles")
-public class RoleController {
+@RequestMapping("/users/roles")
+public class UserRoleController {
+    @Autowired
+    private UserService userService;
     @Autowired
     private RoleService roleService;
     @Autowired
     private RoleMapper roleMapper;
 
     /**
-     * Get roles.
+     * Get user's roles.
      *
+     * @param userId User id
      * @return {@link List} of {@link RoleDto}
      */
     @Transactional(readOnly = true)
-    @GetMapping("")
-    @PreAuthorize("hasAuthority('ROLE_READ')")
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('ROLE_READ')")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -63,27 +65,36 @@ public class RoleController {
                 mediaType = "application/json"
             )
         ),
+        @ApiResponse(
+            responseCode = "404",
+            content = @Content(
+                schema = @Schema(implementation = ErrorDto.class),
+                mediaType = "application/json"
+            )
+        ),
     })
-    public List<RoleDto> getRoles() {
-        return roleService.getAll().stream()
+    public List<RoleDto> getUserRoles(@PathVariable int userId) {
+        return userService.get(userId).getRoles().stream()
             .map(roleMapper::toDto)
             .collect(Collectors.toList());
     }
 
     /**
-     * Get role.
+     * Set user's roles.
      *
-     * @param id Role id
-     * @return {@link RoleDto}
+     * @param userId User id
+     * @param roleIds Role ids
+     * @return {@link List} of {@link RoleDto}
+     * @apiNote Does not throw error if roles not found
      */
     @Transactional(readOnly = true)
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_READ')")
+    @PostMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             content = @Content(
-                schema = @Schema(implementation = RoleDto.class),
+                array = @ArraySchema(schema = @Schema(implementation = RoleDto.class)),
                 mediaType = "application/json"
             )
         ),
@@ -102,31 +113,31 @@ public class RoleController {
             )
         ),
     })
-    public RoleDto getRole(@PathVariable int id) {
-        return roleMapper.toDto(roleService.get(id));
+    public List<RoleDto> setUserRoles(@PathVariable int userId, @RequestBody List<Integer> roleIds) {
+        User user = userService.get(userId);
+        user.setRoles(new HashSet<>(roleService.get(roleIds)));
+        return userService.save(user).getRoles().stream()
+            .map(roleMapper::toDto)
+            .collect(Collectors.toList());
     }
 
     /**
-     * Create role.
+     * Add roles to user.
      *
-     * @param roleDto Role
-     * @return {@link RoleDto}
+     * @param userId User id
+     * @param roleIds Role ids
+     * @return {@link List} of {@link RoleDto}
+     * @apiNote Does not throw error if user already has specified role
+     * @apiNote Does not throw error if roles not found
      */
-    @Transactional
-    @PostMapping("")
-    @PreAuthorize("hasAuthority('ROLE_WRITE')")
+    @Transactional(readOnly = true)
+    @PutMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             content = @Content(
-                schema = @Schema(implementation = RoleDto.class),
-                mediaType = "application/json"
-            )
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            content = @Content(
-                schema = @Schema(implementation = ErrorDto.class),
+                array = @ArraySchema(schema = @Schema(implementation = RoleDto.class)),
                 mediaType = "application/json"
             )
         ),
@@ -138,45 +149,37 @@ public class RoleController {
             )
         ),
         @ApiResponse(
-            responseCode = "409",
+            responseCode = "404",
             content = @Content(
                 schema = @Schema(implementation = ErrorDto.class),
                 mediaType = "application/json"
             )
         ),
     })
-    public RoleDto createRole(@RequestBody RoleDto roleDto) {
-        if (!StringUtils.hasText(roleDto.getName())) {
-            throw new IllegalArgumentException("Role name must not be empty.");
-        }
-        if (roleService.exists(roleDto.getName())) {
-            throw new DuplicateEntityException("Role '" + roleDto.getName() + "' already exists.");
-        }
-        return roleMapper.toDto(roleService.save(roleMapper.toEntity(roleDto)));
+    public List<RoleDto> addUserRoles(@PathVariable int userId, @RequestBody List<Integer> roleIds) {
+        User user = userService.get(userId);
+        user.getRoles().addAll(roleService.get(roleIds));
+        return userService.save(user).getRoles().stream()
+            .map(roleMapper::toDto)
+            .collect(Collectors.toList());
     }
 
     /**
-     * Update role.
+     * Delete roles from user.
      *
-     * @param id Id of role to update
-     * @param roleDto Updated information
-     * @return {@link RoleDto}
+     * @param userId User id
+     * @param roleIds Role ids
+     * @return {@link List} of {@link RoleDto}
+     * @apiNote Does not throw error if user does not have specified role
      */
-    @Transactional
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_READ') and hasAuthority('ROLE_WRITE')")
+    @Transactional(readOnly = true)
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
             content = @Content(
-                schema = @Schema(implementation = RoleDto.class),
-                mediaType = "application/json"
-            )
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            content = @Content(
-                schema = @Schema(implementation = ErrorDto.class),
+                array = @ArraySchema(schema = @Schema(implementation = RoleDto.class)),
                 mediaType = "application/json"
             )
         ),
@@ -194,57 +197,12 @@ public class RoleController {
                 mediaType = "application/json"
             )
         ),
-        @ApiResponse(
-            responseCode = "409",
-            content = @Content(
-                schema = @Schema(implementation = ErrorDto.class),
-                mediaType = "application/json"
-            )
-        ),
     })
-    public RoleDto updateRole(@PathVariable int id, @RequestBody RoleDto roleDto) {
-        if (roleDto.getName() != null && !StringUtils.hasText(roleDto.getName())) {
-            throw new IllegalArgumentException("Role name must not be empty.");
-        }
-
-        Role role = roleService.get(id);
-        if (StringUtils.hasText(roleDto.getName())
-            && !Objects.equals(roleDto.getName(), role.getName())
-            && roleService.exists(roleDto.getName())
-        ) {
-            throw new DuplicateEntityException("Role '" + roleDto.getName() + "' already exists.");
-        }
-
-        roleMapper.update(role, roleDto);
-        return roleMapper.toDto(roleService.save(role));
-    }
-
-    /**
-     * Delete role.
-     */
-    @Transactional
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_WRITE')")
-    @ApiResponses({
-        @ApiResponse(
-            responseCode = "200"
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            content = @Content(
-                schema = @Schema(implementation = ErrorDto.class),
-                mediaType = "application/json"
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            content = @Content(
-                schema = @Schema(implementation = ErrorDto.class),
-                mediaType = "application/json"
-            )
-        ),
-    })
-    public void deleteRole(@PathVariable int id) {
-        roleService.delete(id);
+    public List<RoleDto> removeUserRoles(@PathVariable int userId, @RequestBody List<Integer> roleIds) {
+        User user = userService.get(userId);
+        user.getRoles().removeAll(roleService.get(roleIds));
+        return userService.save(user).getRoles().stream()
+            .map(roleMapper::toDto)
+            .collect(Collectors.toList());
     }
 }

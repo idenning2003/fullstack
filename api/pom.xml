@@ -45,33 +45,6 @@
     <java.version>17</java.version>
   </properties>
 
-  <reporting>
-    <plugins>
-      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-checkstyle-plugin -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.6.0</version>
-        <configuration>
-          <configLocation>checkstyle.xml</configLocation>
-        </configuration>
-      </plugin>
-      <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.13</version>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>report</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
-
   <profiles>
     <profile>
       <id>dev</id>

@@ -6,21 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import api.dtos.AuthenticationDto;
@@ -29,9 +26,7 @@ import api.dtos.ErrorDto;
 import api.dtos.RegisterDto;
 import api.entities.Authority;
 import api.mapper.AuthorityMapper;
-import api.services.AuthenticationService;
 import api.services.AuthorityService;
-import api.services.TokenService;
 
 /**
  * {@link AuthorityController} test.
@@ -41,19 +36,12 @@ public class AuthorityControllerTest extends BasicControllerTest {
     @Autowired
     private AuthorityService authorityService;
     @Autowired
-    private TokenService tokenService;
-    @Autowired
-    private AuthenticationService authenticationService;
+    private AuthenticationController authenticationController;
     @Autowired
     private AuthorityMapper authorityMapper;
 
-    @Value("${api.admin.username:admin}")
-    private String adminUsername;
-    @Value("${api.admin.password:password}")
-    private String adminPassword;
-
     /**
-     * {@link AuthorityController#getAuthorities()} test.
+     * {@link AuthorityController#getAuthorities} test.
      */
     @Nested
     public class GetAuthorities {
@@ -66,11 +54,8 @@ public class AuthorityControllerTest extends BasicControllerTest {
             authorityService.save(Authority.builder().authority(newAuthorityName).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // WHEN: Get authorities
@@ -92,7 +77,7 @@ public class AuthorityControllerTest extends BasicControllerTest {
         @Test
         public void should403_whenUnauthorized() {
             // GIVEN: User authentication header
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username("user_" + UUID.randomUUID())
                     .password("password")
@@ -118,7 +103,7 @@ public class AuthorityControllerTest extends BasicControllerTest {
     }
 
     /**
-     * {@link AuthorityController#getAuthority()} test.
+     * {@link AuthorityController#getAuthority} test.
      */
     @Nested
     public class GetAuthority {
@@ -131,11 +116,8 @@ public class AuthorityControllerTest extends BasicControllerTest {
             Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             URI uri = UriComponentsBuilder.fromUriString(url)
@@ -163,7 +145,7 @@ public class AuthorityControllerTest extends BasicControllerTest {
             Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
 
             // GIVEN: User authentication header
-            AuthenticationDto auth = authenticationService.register(
+            AuthenticationDto auth = authenticationController.register(
                 RegisterDto.builder()
                     .username("user_" + UUID.randomUUID())
                     .password("password")
@@ -199,11 +181,8 @@ public class AuthorityControllerTest extends BasicControllerTest {
             Authority newAuthority = authorityService.save(Authority.builder().authority(newAuthorityName).build());
 
             // GIVEN: Admin authentication header
-            AuthenticationDto auth = tokenService.generateToken(
-                new UsernamePasswordAuthenticationToken(adminUsername, null, Collections.emptyList())
-            );
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(auth.getAccessToken());
+            headers.setBearerAuth(adminAuth.getAccessToken());
             HttpEntity<Void> request = new HttpEntity<>(null, headers);
 
             // GIVEN: Wrong authority id
