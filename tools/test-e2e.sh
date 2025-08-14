@@ -28,4 +28,4 @@ sleep 1
 until curl -fsS http://localhost:8080 | grep -q true; do sleep 1; done
 
 cd "$UI_DIR"
-npx ng e2e
+npm run e2e

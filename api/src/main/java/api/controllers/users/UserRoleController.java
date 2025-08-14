@@ -22,17 +22,20 @@ import api.entities.User;
 import api.mapper.RoleMapper;
 import api.services.RoleService;
 import api.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * {@link UserRoleController}.
  */
 @RestController
 @RequestMapping("/users/roles")
+@Tag(name = "User Roles", description = "The roles applied to a specific user.")
 public class UserRoleController {
     @Autowired
     private UserService userService;
@@ -50,6 +53,10 @@ public class UserRoleController {
     @Transactional(readOnly = true)
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('ROLE_READ')")
+    @Operation(
+        summary = "Get User's Roles",
+        description = "Get list of roles applied to a user."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -90,6 +97,13 @@ public class UserRoleController {
     @Transactional(readOnly = true)
     @PostMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
+    @Operation(
+        summary = "Set User's Roles",
+        description = "Set list of roles applied to a user."
+            + "<ul>"
+                + "<li>If a role ID is not found in the system, it will not be applied to the user.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -133,6 +147,14 @@ public class UserRoleController {
     @Transactional(readOnly = true)
     @PutMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
+    @Operation(
+        summary = "Add User's Roles",
+        description = "Add list of roles applied to a user."
+            + "<ul>"
+                + "<li>If a role ID is not found in the system, it will not be applied to the user.</li>"
+                + "<li>If a role ID is already applied to the user, it will remain applied.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -175,6 +197,13 @@ public class UserRoleController {
     @Transactional(readOnly = true)
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
+    @Operation(
+        summary = "Remove User's Roles",
+        description = "Remove list of roles applied to a user."
+            + "<ul>"
+                + "<li>If a role ID is not applied to the user, it will remain not applied.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",

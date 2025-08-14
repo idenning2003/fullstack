@@ -28,17 +28,20 @@ import api.entities.User;
 import api.exceptions.DuplicateEntityException;
 import api.mapper.UserMapper;
 import api.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * {@link UserController}.
  */
 @RestController
 @RequestMapping("/users")
+@Tag(name = "Users", description = "System users.")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -57,6 +60,10 @@ public class UserController {
      */
     @Transactional(readOnly = true)
     @GetMapping("/me")
+    @Operation(
+        summary = "Get Me",
+        description = "Get the current user's information."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -77,6 +84,14 @@ public class UserController {
      */
     @Transactional
     @PutMapping("/me")
+    @Operation(
+        summary = "Update Me",
+        description = "Update the current user's information."
+            + "<ul>"
+                + "<li>Ignores <em>id</em> and <em>password</em> from request body.</li>"
+                + "<li>Any field missing or null from request body will be left unchanged in user information.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -101,6 +116,7 @@ public class UserController {
         ),
     })
     public UserDto updateMe(@AuthenticationPrincipal User user, @RequestBody UserDto userDto) {
+        // TODO: Allow users to update their password, either via this endpoint, or another
         if (userDto.getUsername() != null && !StringUtils.hasText(userDto.getUsername())) {
             throw new IllegalArgumentException("Username must not be empty.");
         }
@@ -121,6 +137,10 @@ public class UserController {
      */
     @Transactional
     @DeleteMapping("/me")
+    @Operation(
+        summary = "Delete Me",
+        description = "Deletes the current user."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200"
@@ -138,6 +158,13 @@ public class UserController {
     @Transactional(readOnly = true)
     @GetMapping("")
     @PreAuthorize("hasAuthority('USER_READ')")
+    @Operation(
+        summary = "Get Users",
+        description = "Get paginated list of user's information."
+            + "<ul>"
+                + "<li>If <em>size</em> excedes limit, response will contain up to limit.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -176,6 +203,10 @@ public class UserController {
     @Transactional(readOnly = true)
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_READ')")
+    @Operation(
+        summary = "Get User",
+        description = "Get specific user's information."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -213,6 +244,14 @@ public class UserController {
     @Transactional
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('USER_WRITE')")
+    @Operation(
+        summary = "Update User",
+        description = "Update specific user's information.<br>"
+            + "<ul>"
+                + "<li>Ignores <em>id</em> and <em>password</em> from request body.</li>"
+                + "<li>Any field missing or null from request body will be left unchanged in user information.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -269,6 +308,10 @@ public class UserController {
     @Transactional
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('USER_WRITE')")
+    @Operation(
+        summary = "Delete User",
+        description = "Deletes specific user."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200"

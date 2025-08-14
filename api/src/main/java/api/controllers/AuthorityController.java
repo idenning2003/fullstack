@@ -15,17 +15,23 @@ import api.dtos.AuthorityDto;
 import api.dtos.ErrorDto;
 import api.mapper.AuthorityMapper;
 import api.services.AuthorityService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * {@link AuthorityController}.
  */
 @RestController
 @RequestMapping("/authorities")
+@Tag(
+    name = "Authorities",
+    description = "Authorites can be applied to roles and specify what functionality that role has access to."
+)
 public class AuthorityController {
     @Autowired
     private AuthorityService authorityService;
@@ -39,6 +45,10 @@ public class AuthorityController {
      */
     @Transactional(readOnly = true)
     @GetMapping("")
+    @Operation(
+        summary = "Get Authorities",
+        description = "Get list of all authorities."
+    )
     @PreAuthorize("hasAuthority('AUTHORITY_READ')")
     @ApiResponses({
         @ApiResponse(
@@ -69,6 +79,10 @@ public class AuthorityController {
      */
     @Transactional(readOnly = true)
     @GetMapping("/{id}")
+    @Operation(
+        summary = "Get Authority",
+        description = "Get specific authority."
+    )
     @PreAuthorize("hasAuthority('AUTHORITY_READ')")
     @ApiResponses({
         @ApiResponse(

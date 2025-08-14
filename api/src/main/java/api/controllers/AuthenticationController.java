@@ -24,16 +24,19 @@ import api.exceptions.DuplicateEntityException;
 import api.services.RoleService;
 import api.services.TokenService;
 import api.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * {@link AuthenticationController}.
  */
 @RestController
 @RequestMapping("/authenticate")
+@Tag(name = "Authentication", description = "Endpoints for users to login or register.")
 public class AuthenticationController {
     @Autowired
     private TokenService tokenService;
@@ -51,8 +54,12 @@ public class AuthenticationController {
      *
      * @return {@link AuthenticationDto}
      */
-    @PostMapping("/login")
     @Transactional(readOnly = true)
+    @PostMapping("/login")
+    @Operation(
+        summary = "Login",
+        description = "Login to an existing user."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -74,8 +81,12 @@ public class AuthenticationController {
      *
      * @return {@link AuthenticationDto}
      */
-    @PostMapping("/register")
     @Transactional
+    @PostMapping("/register")
+    @Operation(
+        summary = "Register",
+        description = "Register a new user."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",

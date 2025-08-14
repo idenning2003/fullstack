@@ -23,17 +23,23 @@ import api.entities.Role;
 import api.exceptions.DuplicateEntityException;
 import api.mapper.RoleMapper;
 import api.services.RoleService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * {@link RoleController}.
  */
 @RestController
 @RequestMapping("/roles")
+@Tag(
+    name = "Roles",
+    description = "Roles contain a set of authorities which athorize users access different functionality."
+)
 public class RoleController {
     @Autowired
     private RoleService roleService;
@@ -48,6 +54,10 @@ public class RoleController {
     @Transactional(readOnly = true)
     @GetMapping("")
     @PreAuthorize("hasAuthority('ROLE_READ')")
+    @Operation(
+        summary = "Get Roles",
+        description = "Get list of all role's information."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -79,6 +89,10 @@ public class RoleController {
     @Transactional(readOnly = true)
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_READ')")
+    @Operation(
+        summary = "Get Role",
+        description = "Get specific role's information."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -115,6 +129,14 @@ public class RoleController {
     @Transactional
     @PostMapping("")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
+    @Operation(
+        summary = "Create Role",
+        description = "Create a new role."
+            + "<ul>"
+                + "<li>The name of the role must not be empty.</li>"
+                + "<li>The name of the role must not conflict with an existing role.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -165,6 +187,16 @@ public class RoleController {
     @Transactional
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_READ') and hasAuthority('ROLE_WRITE')")
+    @Operation(
+        summary = "Update Role",
+        description = "Update a specific role."
+            + "<ul>"
+                + "<li>The name of the role must not be empty.</li>"
+                + "<li>The name of the role must not conflict with an existing role.</li>"
+                + "<li>Ignores <em>id</em> from request body.</li>"
+                + "<li>Any field missing or null from request body will be left unchanged in user information.</li>"
+            + "</ul>"
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
@@ -225,6 +257,10 @@ public class RoleController {
     @Transactional
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
+    @Operation(
+        summary = "Delete Role",
+        description = "Delete a specific role."
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200"
