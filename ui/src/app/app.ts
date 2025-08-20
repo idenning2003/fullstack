@@ -1,13 +1,14 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { Toast } from 'primeng/toast';
 import { HeartbeatService } from './api';
+import { Navbar } from './navbar/navbar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ButtonModule, Toast],
+  imports: [RouterOutlet, ButtonModule, Toast, Navbar],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   providers: [MessageService],
@@ -15,16 +16,10 @@ import { HeartbeatService } from './api';
 export class App implements OnInit {
   private messageService = inject(MessageService);
   private heartbeatService = inject(HeartbeatService);
-  protected readonly title = signal('ui');
 
   ngOnInit() {
     this.heartbeatService.heartbeat().subscribe({
-      next: () =>
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'API: Connected',
-        }),
+      next: () => console.log('API: Successfully connected'),
       error: () =>
         this.messageService.add({
           severity: 'error',

@@ -7,4 +7,5 @@
     },
     "editor.insertSpaces": true,
     "editor.rulers": [120],
+    "scss.lint.unknownAtRules": "ignore",
 }
