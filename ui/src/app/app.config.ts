@@ -1,8 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
-import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter } from '@angular/router';
-import { ToastrModule } from 'ngx-toastr';
+import Aura from '@primeuix/themes/aura';
+import { providePrimeNG } from 'primeng/config';
 import { Configuration } from './api';
 
 import { routes } from './app.routes';
@@ -15,11 +16,17 @@ export function apiConfigFactory(): Configuration {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    importProvidersFrom(BrowserAnimationsModule),
-    importProvidersFrom(ToastrModule.forRoot()),
     provideHttpClient(),
+    provideAnimationsAsync(),
+    providePrimeNG({
+      theme: {
+        preset: Aura,
+        options: { darkModeSelector: '.p-dark' },
+      },
+    }),
     {
       provide: Configuration,
       useFactory: apiConfigFactory,

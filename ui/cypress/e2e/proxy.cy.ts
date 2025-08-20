@@ -1,4 +1,6 @@
-describe('Proxy', () => {
+/// <reference types="cypress" />
+
+context('Proxy', () => {
   /**
    * Attempt to access the API via the proxy
    */
