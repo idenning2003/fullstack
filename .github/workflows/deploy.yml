@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 jobs:
-  maven-site:
+  site:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,6 +29,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ui-test-report
+          path: ./site
+
+      - name: Download UI Stats
+        uses: actions/download-artifact@v4
+        with:
+          name: ui-stats
           path: ./site
 
       - name: Setup Pages

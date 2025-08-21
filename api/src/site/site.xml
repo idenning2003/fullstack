@@ -24,6 +24,7 @@
       <item name="OpenAPI" href="openapi.html"/>
       <item name="Cypress" href="cypress.html"/>
       <item name="JaCoCo" href="jacoco/index.html"/>
+      <item name="EsBuild" href="stats.html"/>
     </menu>
     <menu ref="reports"/>
   </body>

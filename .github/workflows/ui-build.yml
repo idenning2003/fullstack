@@ -60,8 +60,19 @@ jobs:
       run: |
         ng build --configuration=production
 
-    - name: Upload UI
+    - name: Upload UI App
       uses: actions/upload-artifact@v4.6.2
       with:
         name: ui-app
         path: ui/dist/ui/browser
+
+    - name: Build UI Stats
+      working-directory: ./ui
+      run: |
+        npx esbuild-visualizer --metadata dist/ui/stats.json --filename dist/ui/stats.html
+
+    - name: Upload UI Stats
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: ui-stats
+        path: ui/dist/ui/stats.html

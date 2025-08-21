@@ -7,27 +7,22 @@ on:
     - '**'
 
 jobs:
-  maven-cache:
-    uses: ./.github/workflows/maven-cache.yml
-
-  openapi-build:
-    needs: maven-cache
-    uses: ./.github/workflows/openapi-build.yml
+  api-cache:
+    uses: ./.github/workflows/api-cache.yml
 
   api-check:
     needs:
-      - maven-cache
+      - api-cache
     uses: ./.github/workflows/api-check.yml
 
   api-test:
     needs:
-      - maven-cache
-      - openapi-build
+      - api-cache
     uses: ./.github/workflows/api-test.yml
 
   api-build:
     needs:
-      - maven-cache
+      - api-cache
     uses: ./.github/workflows/api-build.yml
 
   ui-check:
@@ -35,17 +30,18 @@ jobs:
 
   ui-test:
     needs:
-      - openapi-build
+      - api-build
       - api-build
     uses: ./.github/workflows/ui-test.yml
 
   ui-build:
-    needs: openapi-build
+    needs: api-build
     uses: ./.github/workflows/ui-build.yml
 
-  deploy-pages:
+  deploy:
     needs:
-      - openapi-build
+      - api-build
       - api-test
+      - ui-build
       - ui-test
-    uses: ./.github/workflows/deploy-pages.yml
+    uses: ./.github/workflows/deploy.yml

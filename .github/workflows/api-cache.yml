@@ -1,10 +1,10 @@
-name: Cache Maven
+name: API Cache
 
 on:
   workflow_call:
 
 jobs:
-  cache:
+  maven:
     runs-on: ubuntu-latest
 
     steps:
