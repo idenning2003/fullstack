@@ -6,6 +6,9 @@ import { Toast } from 'primeng/toast';
 import { HeartbeatService } from './api';
 import { Navbar } from './navbar/navbar';
 
+/**
+ * Application component.
+ */
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, ButtonModule, Toast, Navbar],
@@ -17,7 +20,10 @@ export class App implements OnInit {
   private messageService = inject(MessageService);
   private heartbeatService = inject(HeartbeatService);
 
-  ngOnInit() {
+  /**
+   * Initialize.
+   */
+  public ngOnInit(): void {
     this.heartbeatService.heartbeat().subscribe({
       next: () => console.log('API: Successfully connected'),
       error: () =>

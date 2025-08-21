@@ -4,10 +4,13 @@
   "compileOnSave": false,
   "compilerOptions": {
     "strict": true,
+    "noImplicitAny": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
+    "noImplicitThis": true,
     "noFallthroughCasesInSwitch": true,
+    "strictPropertyInitialization": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "experimentalDecorators": true,

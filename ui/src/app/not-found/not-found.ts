@@ -2,6 +2,9 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { PanelModule } from 'primeng/panel';
 
+/**
+ * 404 not found compnent.
+ */
 @Component({
   selector: 'app-not-found',
   imports: [PanelModule],
@@ -9,9 +12,12 @@ import { PanelModule } from 'primeng/panel';
   styleUrl: './not-found.scss',
 })
 export class NotFound implements OnInit {
-  title = inject(Title);
+  private title = inject(Title);
 
-  ngOnInit(): void {
+  /**
+   * Initialize.
+   */
+  public ngOnInit(): void {
     this.title.setTitle('UI - 404 Not Found');
   }
 }

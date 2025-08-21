@@ -11,8 +11,8 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "cypress:report": "npx mochawesome-merge cypress/results/mochawesome*.json > cypress/results/merged.json && npx marge cypress/results/merged.json --reportDir cypress/results/html/ --reportFilename cypress.html",
-    "pretty-quick": "pretty-quick --staged",
-    "lint": "ng lint --fix"
+    "lint": "ng lint",
+    "lint:fix": "ng lint --fix"
   },
   "private": true,
   "dependencies": {
@@ -43,6 +43,8 @@
     "esbuild-visualizer": "^0.7.0",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsdoc": "^54.1.1",
     "eslint-plugin-prettier": "^5.5.4",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",

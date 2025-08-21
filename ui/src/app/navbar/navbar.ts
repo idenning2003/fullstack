@@ -17,6 +17,9 @@ export interface ThemeState {
   darkTheme?: boolean;
 }
 
+/**
+ * Navbar component
+ */
 @Component({
   selector: 'app-navbar',
   imports: [ThemeSwitcher, Menubar, AvatarModule, MenuModule, BadgeModule, InputTextModule, CommonModule, ButtonModule],
@@ -24,57 +27,78 @@ export interface ThemeState {
   styleUrl: './navbar.scss',
 })
 export class Navbar implements OnInit {
-  auth = inject(Auth);
-  userItems: MenuItem[] | undefined;
-
-  items: MenuItem[] = [
+  protected userItems: MenuItem[] | undefined;
+  protected items: MenuItem[] = [
     {
       label: 'Home',
       icon: 'pi pi-home',
-      url: '/',
+      routerLink: '/',
     },
     {
       label: 'About',
       icon: 'pi pi-info-circle',
-      url: '/about',
+      routerLink: '/about',
     },
     {
       label: 'Help',
       icon: 'pi pi-question-circle',
-      url: '/help',
+      routerLink: '/help',
     },
     {
       label: 'Contact',
       icon: 'pi pi-address-book',
-      url: '/contact',
+      routerLink: '/contact',
     },
   ];
 
-  ngOnInit(): void {
+  private auth: Auth = inject(Auth);
+
+  /**
+   * Initialize.
+   */
+  public ngOnInit(): void {
+    this.refresh();
+  }
+
+  /**
+   * Refresh the sub-components.
+   */
+  public refresh(): void {
     const isLoggedIn = this.auth.isLoggedIn();
     this.userItems = [
-      { label: 'Profile', icon: 'pi pi-user', url: '/users' },
-      { label: 'Settings', icon: 'pi pi-cog', url: '/settings' },
+      { label: 'Profile', icon: 'pi pi-user', routerLink: '/users' },
+      { label: 'Settings', icon: 'pi pi-cog', routerLink: '/settings' },
       { separator: true },
-      { label: 'Login', icon: 'pi pi-sign-in', command: () => this.login(), visible: !isLoggedIn },
-      { label: 'Logout', icon: 'pi pi-sign-out', command: () => this.logout(), visible: isLoggedIn },
+      {
+        label: 'Login',
+        icon: 'pi pi-sign-in',
+        command: (): void => this.login(),
+        routerLink: '/login',
+        visible: !isLoggedIn,
+      },
+      {
+        label: 'Logout',
+        icon: 'pi pi-sign-out',
+        command: (): void => this.logout(),
+        routerLink: '/',
+        visible: isLoggedIn,
+      },
     ];
   }
 
-  onThemeToggler() {
-    const element = document.querySelector('html');
-    if (element) {
-      element.classList.toggle('my-app-dark');
-    }
-  }
-
-  login() {
+  /**
+   * Login.
+   */
+  private login(): void {
     this.auth.setToken('token');
-    window.location.reload();
+    this.refresh();
   }
 
-  logout() {
+  /**
+   * Logout.
+   */
+  private logout(): void {
     this.auth.removeToken();
-    window.location.reload();
+    this.refresh();
   }
 }

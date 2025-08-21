@@ -26,6 +26,9 @@ export interface ThemeState {
   darkTheme?: boolean;
 }
 
+/**
+ * Themeswitcher from PrimeNG.
+ */
 @Component({
   selector: 'app-theme-switcher',
   imports: [CommonModule, FormsModule, StyleClassModule, SelectButtonModule, ToggleSwitchModule, PopoverModule],
@@ -33,58 +36,21 @@ export interface ThemeState {
   styleUrl: './theme-switcher.scss',
 })
 export class ThemeSwitcher implements OnInit {
-  private readonly STORAGE_KEY = 'themeSwitcherState';
+  protected readonly iconClass = computed(() => (this.themeState().darkTheme ? 'pi-sun' : 'pi-moon'));
 
-  document = inject(DOCUMENT);
+  protected presets = Object.keys(presets);
 
-  iconClass = computed(() => (this.themeState().darkTheme ? 'pi-sun' : 'pi-moon'));
+  protected readonly selectedPreset = computed(() => this.themeState().preset);
 
-  presets = Object.keys(presets);
+  protected readonly selectedSurfaceColor = computed(() => this.themeState().surface);
 
-  platformId = inject(PLATFORM_ID);
-
-  config: PrimeNG = inject(PrimeNG);
-
-  themeState = signal<ThemeState>({});
-
-  theme = computed(() => (this.themeState()?.darkTheme ? 'dark' : 'light'));
-
-  selectedPreset = computed(() => this.themeState().preset);
-
-  selectedSurfaceColor = computed(() => this.themeState().surface);
-
-  selectedPrimaryColor = computed(() => {
+  protected readonly selectedPrimaryColor = computed(() => {
     return this.themeState().primary;
   });
 
-  constructor() {
-    this.themeState.set({ ...this.loadthemeState() });
+  protected readonly transitionComplete = signal<boolean>(false);
 
-    effect(() => {
-      const state = this.themeState();
-
-      this.savethemeState(state);
-      this.handleDarkModeTransition(state);
-    });
-  }
-
-  ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.onPresetChange(this.themeState().preset);
-    }
-  }
-
-  get ripple() {
-    return this.config.ripple();
-  }
-
-  set ripple(value: boolean) {
-    this.config.ripple.set(value);
-  }
-
-  transitionComplete = signal<boolean>(false);
-
-  primaryColors = computed(() => {
+  protected readonly primaryColors = computed(() => {
     const preset = this.themeState().preset;
     const presetPalette = preset ? presets[preset as keyof typeof presets].primitive : null;
     const colors = [
@@ -117,7 +83,7 @@ export class ThemeSwitcher implements OnInit {
     return palettes;
   });
 
-  surfaces = [
+  protected surfaces = [
     {
       name: 'slate',
       palette: {
@@ -256,14 +222,82 @@ export class ThemeSwitcher implements OnInit {
     },
   ];
 
-  onThemeToggler() {
+  private readonly STORAGE_KEY = 'themeSwitcherState';
+
+  private document = inject(DOCUMENT);
+
+  private platformId = inject(PLATFORM_ID);
+
+  private config: PrimeNG = inject(PrimeNG);
+
+  private readonly themeState = signal<ThemeState>({});
+
+  private readonly theme = computed(() => (this.themeState()?.darkTheme ? 'dark' : 'light'));
+
+  /**
+   * Create theme switcher component.
+   */
+  public constructor() {
+    this.themeState.set({ ...this.loadthemeState() });
+
+    effect(() => {
+      const state = this.themeState();
+
+      this.savethemeState(state);
+      this.handleDarkModeTransition(state);
+    });
+  }
+
+  protected get ripple(): boolean {
+    return this.config.ripple();
+  }
+
+  protected set ripple(value: boolean) {
+    this.config.ripple.set(value);
+  }
+
+  /**
+   * Initialize.
+   */
+  public ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.onPresetChange(this.themeState().preset);
+    }
+  }
+
+  protected onThemeToggler(): void {
     this.themeState.update((state) => ({
       ...state,
       darkTheme: !state.darkTheme,
     }));
   }
 
-  getPresetExt() {
+  protected updateColors(event: any, type: string, color: any): void {
+    if (type === 'primary') {
+      this.themeState.update((state) => ({ ...state, primary: color.name }));
+    } else if (type === 'surface') {
+      this.themeState.update((state) => ({ ...state, surface: color.name }));
+    }
+    this.applyTheme(type, color);
+
+    event.stopPropagation();
+  }
+
+  protected onPresetChange(event: any): void {
+    this.themeState.update((state) => ({ ...state, preset: event }));
+    const preset = presets[event as keyof typeof presets];
+    const surfacePalette = this.surfaces.find((s) => s.name === this.selectedSurfaceColor())?.palette;
+    if (this.themeState().preset === 'Material') {
+      document.body.classList.add('material');
+      this.config.ripple.set(true);
+    } else {
+      document.body.classList.remove('material');
+      this.config.ripple.set(false);
+    }
+    $t().preset(preset).preset(this.getPresetExt()).surfacePalette(surfacePalette).use({ useDefaultOptions: true });
+  }
+
+  private getPresetExt(): any {
     const color = this.primaryColors().find((c) => c.name === this.selectedPrimaryColor());
 
     if (color && color.name === 'noir') {
@@ -427,7 +461,7 @@ export class ThemeSwitcher implements OnInit {
     }
   }
 
-  startViewTransition(state: ThemeState): void {
+  private startViewTransition(state: ThemeState): void {
     const transition = (document as any).startViewTransition(() => {
       this.toggleDarkMode(state);
     });
@@ -435,7 +469,7 @@ export class ThemeSwitcher implements OnInit {
     transition.ready.then(() => this.onTransitionEnd());
   }
 
-  toggleDarkMode(state: ThemeState): void {
+  private toggleDarkMode(state: ThemeState): void {
     if (state.darkTheme) {
       this.document.documentElement.classList.add('p-dark');
     } else {
@@ -443,14 +477,14 @@ export class ThemeSwitcher implements OnInit {
     }
   }
 
-  onTransitionEnd() {
+  private onTransitionEnd(): void {
     this.transitionComplete.set(true);
     setTimeout(() => {
       this.transitionComplete.set(false);
     });
   }
 
-  handleDarkModeTransition(state: ThemeState): void {
+  private handleDarkModeTransition(state: ThemeState): void {
     if (isPlatformBrowser(this.platformId)) {
       if ((document as any).startViewTransition) {
         this.startViewTransition(state);
@@ -461,18 +495,7 @@ export class ThemeSwitcher implements OnInit {
     }
   }
 
-  updateColors(event: any, type: string, color: any) {
-    if (type === 'primary') {
-      this.themeState.update((state) => ({ ...state, primary: color.name }));
-    } else if (type === 'surface') {
-      this.themeState.update((state) => ({ ...state, surface: color.name }));
-    }
-    this.applyTheme(type, color);
-
-    event.stopPropagation();
-  }
-
-  applyTheme(type: string, color: any) {
+  private applyTheme(type: string, color: any): void {
     if (type === 'primary') {
       updatePreset(this.getPresetExt());
     } else if (type === 'surface') {
@@ -480,21 +503,7 @@ export class ThemeSwitcher implements OnInit {
     }
   }
 
-  onPresetChange(event: any) {
-    this.themeState.update((state) => ({ ...state, preset: event }));
-    const preset = presets[event as keyof typeof presets];
-    const surfacePalette = this.surfaces.find((s) => s.name === this.selectedSurfaceColor())?.palette;
-    if (this.themeState().preset === 'Material') {
-      document.body.classList.add('material');
-      this.config.ripple.set(true);
-    } else {
-      document.body.classList.remove('material');
-      this.config.ripple.set(false);
-    }
-    $t().preset(preset).preset(this.getPresetExt()).surfacePalette(surfacePalette).use({ useDefaultOptions: true });
-  }
-
-  loadthemeState(): any {
+  private loadthemeState(): any {
     if (isPlatformBrowser(this.platformId)) {
       const storedState = localStorage.getItem(this.STORAGE_KEY);
       if (storedState) {
@@ -509,7 +518,7 @@ export class ThemeSwitcher implements OnInit {
     };
   }
 
-  savethemeState(state: any): void {
+  private savethemeState(state: any): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
     }

@@ -8,6 +8,11 @@ import { Configuration } from './api';
 
 import { routes } from './app.routes';
 
+/**
+ * Factory function to create API configuration.
+ *
+ * @returns {Configuration} The API configuration instance.
+ */
 export function apiConfigFactory(): Configuration {
   return new Configuration({
     basePath: '/api',
