@@ -19,13 +19,7 @@ jobs:
 
     - name: Test API Development
       working-directory: ./api
-      run: ./mvnw -B test site --file pom.xml
-
-    - name: Uoplad Site
-      uses: actions/upload-artifact@v4
-      with:
-        name: api-site-partial
-        path: api/target/site
+      run: ./mvnw -B test --file pom.xml
 
   prod:
     runs-on: ubuntu-latest
@@ -36,6 +30,7 @@ jobs:
         ports:
           - 5432:5432
         env:
+          POSTGRES_DB: fullstack
           POSTGRES_USER: db_user
           POSTGRES_PASSWORD: db_pass
         options: >-
@@ -56,10 +51,24 @@ jobs:
 
     - name: Test API Production
       working-directory: ./api
-      run: ./mvnw -B test --file pom.xml -Pprod
+      run: |
+        ./mvnw -B test site --file pom.xml -Pprod
+        cp -r target/spring-test-profiler target/site/
       env:
-        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/fullstack
         SPRING_DATASOURCE_USERNAME: db_user
         SPRING_DATASOURCE_PASSWORD: db_pass
         SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
         SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+
+    - name: Uoplad Site
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-site-partial
+        path: api/target/site
+
+    - name: Upload Flight Record
+      uses: actions/upload-artifact@v4
+      with:
+        name: api-flight-record
+        path: api/target/flight.jfr

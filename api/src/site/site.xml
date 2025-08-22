@@ -24,7 +24,9 @@
       <item name="OpenAPI" href="openapi.html"/>
       <item name="Cypress" href="cypress.html"/>
       <item name="JaCoCo" href="jacoco/index.html"/>
+      <item name="Spring Test Profiler" href="spring-test-profiler/latest.html"/>
       <item name="EsBuild" href="stats.html"/>
+      <item name="Surefire" href="surefire.html"/>
     </menu>
     <menu ref="reports"/>
   </body>
