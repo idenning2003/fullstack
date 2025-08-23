@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,6 +48,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private PasswordEncoder encoder;
 
     @Value("${pagination.default-page-size:10}")
     private int defaultPageSize;
@@ -116,7 +119,6 @@ public class UserController {
         ),
     })
     public UserDto updateMe(@AuthenticationPrincipal User user, @RequestBody UserDto userDto) {
-        // TODO: Allow users to update their password, either via this endpoint, or another
         if (userDto.getUsername() != null && !StringUtils.hasText(userDto.getUsername())) {
             throw new IllegalArgumentException("Username must not be empty.");
         }
@@ -130,6 +132,36 @@ public class UserController {
 
         userMapper.update(user, userDto);
         return userMapper.toDto(userService.save(user));
+    }
+
+    /**
+     * Update my password.
+     */
+    @Transactional
+    @PutMapping("/me/password")
+    @Operation(
+        summary = "Update My Password",
+        description = "Updates the current users password."
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            content = @Content(
+                schema = @Schema(implementation = ErrorDto.class),
+                mediaType = "application/json"
+            )
+        ),
+    })
+    public void updateMyPassword(@AuthenticationPrincipal User user, @RequestBody String password) {
+        if (encoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("New password matches existing password.");
+        }
+
+        user.setPassword(encoder.encode(password));
+        userService.save(user);
     }
 
     /**

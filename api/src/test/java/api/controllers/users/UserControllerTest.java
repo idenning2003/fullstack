@@ -1,10 +1,12 @@
 package api.controllers.users;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
@@ -24,6 +26,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -31,6 +34,7 @@ import api.controllers.AuthenticationController;
 import api.controllers.BasicControllerTest;
 import api.dtos.AuthenticationDto;
 import api.dtos.ErrorDto;
+import api.dtos.LoginDto;
 import api.dtos.RegisterDto;
 import api.dtos.UserDto;
 import api.entities.User;
@@ -517,6 +521,91 @@ public class UserControllerTest extends BasicControllerTest {
                     "Username '" + username2 + "' already exists.",
                     responseEntity.getBody().getMessage()
                 )
+            );
+        }
+    }
+
+    /**
+     * {@link UserController#updateMyPassword} test.
+     */
+    @Nested
+    public class UpdateMyPassword {
+        private static final String ENDPOINT = "/users/me/password";
+
+        @Test
+        public void shouldUpdateMyPassword() {
+            // GIVEN: New user registered
+            String username = "user_" + UUID.randomUUID();
+            String oldPassword = "password";
+            AuthenticationDto auth = authenticationController.register(
+                RegisterDto.builder()
+                    .username(username)
+                    .password(oldPassword)
+                    .build()
+            );
+
+            // GIVEN: New password is different
+            String newPassword = "newPassword";
+
+            // GIVEN: JWT authentication
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(auth.getAccessToken());
+            HttpEntity<String> request = new HttpEntity<>(newPassword, headers);
+
+            // WHEN: Update my password
+            ResponseEntity<String> responseEntity = testRestTemplate.exchange(
+                url + ENDPOINT, HttpMethod.PUT, request, new ParameterizedTypeReference<String>() {}
+            );
+
+            // THEN: Returns me and can login with new password, but not old
+            assertAll(
+                () -> assertEquals(HttpStatus.OK, responseEntity.getStatusCode()),
+                () -> assertNull(responseEntity.getBody()),
+                () -> assertDoesNotThrow(
+                    () -> authenticationController.login(
+                        LoginDto.builder().username(username).password(newPassword).build()
+                    )
+                ),
+                () -> assertThrows(
+                    BadCredentialsException.class,
+                    () -> authenticationController.login(
+                        LoginDto.builder().username(username).password(oldPassword).build()
+                    )
+                )
+            );
+        }
+
+        @Test
+        public void should400_whenPasswordUnchanged() {
+            // GIVEN: New user registered
+            String username = "user_" + UUID.randomUUID();
+            String oldPassword = "password";
+            AuthenticationDto auth = authenticationController.register(
+                RegisterDto.builder()
+                    .username(username)
+                    .password(oldPassword)
+                    .build()
+            );
+
+            // GIVEN: New password is same
+            String newPassword = oldPassword;
+
+            // GIVEN: JWT authentication
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(auth.getAccessToken());
+            HttpEntity<String> request = new HttpEntity<>(newPassword, headers);
+
+            // WHEN: Update my password
+            ResponseEntity<ErrorDto> responseEntity = testRestTemplate.exchange(
+                url + ENDPOINT, HttpMethod.PUT, request, new ParameterizedTypeReference<ErrorDto>() {}
+            );
+
+            // THEN: Responds bad request
+            assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode()),
+                () -> assertNotNull(responseEntity.getBody()),
+                () -> assertEquals(clock.instant(), responseEntity.getBody().getTimestamp()),
+                () -> assertEquals("New password matches existing password.", responseEntity.getBody().getMessage())
             );
         }
     }
