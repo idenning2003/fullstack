@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
 import { Menubar } from 'primeng/menubar';
 import { Auth } from '../auth';
-import { ThemeSwitcher } from '../theme-switcher/theme-switcher';
+import { ThemeSwitcher } from './theme-switcher/theme-switcher';
 
 export interface ThemeState {
   preset?: string;
