@@ -24,7 +24,6 @@ import api.dtos.RegisterDto;
 /**
  * {@link AuthenticationController} test.
  */
-@SuppressWarnings("null")
 public class AuthenticationControllerTest extends BasicControllerTest {
     @Value("${api.admin.username:admin}")
     private String adminUsername;

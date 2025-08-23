@@ -141,7 +141,7 @@ public class UserController {
     @PutMapping("/me/password")
     @Operation(
         summary = "Update My Password",
-        description = "Updates the current users password."
+        description = "Updates the current user's password."
     )
     @ApiResponses({
         @ApiResponse(

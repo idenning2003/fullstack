@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import api.entities.Authority;
 import api.entities.Role;
@@ -15,35 +14,37 @@ import api.services.AuthorityService;
 import api.services.RoleService;
 import api.services.UserService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * {@link DbSetup}.
  */
+@Slf4j
 @Component
 public class DbSetup {
     @Autowired
     private UserService userService;
-
     @Autowired
     private RoleService roleService;
-
     @Autowired
     private AuthorityService authorityService;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile;
     @Value("${api.admin.username:admin}")
-    String adminUsername;
+    private String adminUsername;
     @Value("${api.admin.password:password}")
-    String adminPassword;
+    private String adminPassword;
 
     /**
      * Initialize the database with necessary fields.
      */
     @PostConstruct
-    @Transactional
     public void init() {
+        log.info("Active profile: " + activeProfile);
+
         // Setup Authorities
         Authority authorityRead = authorityService.find("AUTHORITY_READ")
             .orElseGet(() -> authorityService.save(Authority.builder().authority("AUTHORITY_READ").build()));

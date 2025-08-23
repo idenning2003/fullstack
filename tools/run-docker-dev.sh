@@ -18,7 +18,7 @@ done
 docker compose -f "$ROOT_DIR/compose.yml" build --build-arg CACHEBUST=$(date +%s) ui
 
 # Start up production application
-docker compose -f "$ROOT_DIR/compose.yml" -f "$ROOT_DIR/compose.dev.yml" up -d
+docker compose -f "$ROOT_DIR/compose.yml" -f "$ROOT_DIR/compose.dev.yml" up -d --no-recreate
 
 echo "API_ADMIN_USERNAME: $API_ADMIN_USERNAME"
 echo "API_ADMIN_PASSWORD: $API_ADMIN_PASSWORD"

@@ -1,5 +1,9 @@
 services:
 
+  s3:
+    ports:
+      - "9001:9001"
+
   api:
     ports:
       - "8080:8080"
@@ -13,7 +17,7 @@ services:
     links:
       - db
     environment:
-      - DATABASE_URL=postgres://db_user:db_pass@db:5432/fullstack?sslmode=disable
+      - DATABASE_URL=postgres://db_user:db_password@db:5432/fullstack?sslmode=disable
     depends_on:
       db:
         condition: service_healthy

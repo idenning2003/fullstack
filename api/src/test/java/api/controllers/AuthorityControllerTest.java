@@ -31,7 +31,6 @@ import api.services.AuthorityService;
 /**
  * {@link AuthorityController} test.
  */
-@SuppressWarnings("null")
 public class AuthorityControllerTest extends BasicControllerTest {
     @Autowired
     private AuthorityService authorityService;

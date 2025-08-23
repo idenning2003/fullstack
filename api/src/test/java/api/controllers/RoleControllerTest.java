@@ -37,7 +37,6 @@ import api.services.RoleService;
 /**
  * {@link RoleController} test.
  */
-@SuppressWarnings("null")
 public class RoleControllerTest extends BasicControllerTest {
     @Autowired
     private RoleService roleService;

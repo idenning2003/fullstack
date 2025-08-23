@@ -45,7 +45,6 @@ import io.jsonwebtoken.Jwts;
 /**
  * {@link UserController} test.
  */
-@SuppressWarnings("null")
 public class UserControllerTest extends BasicControllerTest {
     @Autowired
     private UserService userService;

@@ -38,7 +38,6 @@ import api.services.UserService;
 /**
  * {@link UserRoleController} test.
  */
-@SuppressWarnings("null")
 public class UserRoleControllerTest extends BasicControllerTest {
     @Autowired
     private UserService userService;
@@ -54,7 +53,7 @@ public class UserRoleControllerTest extends BasicControllerTest {
      */
     @Nested
     public class GetUserRoles {
-        private static final String ENDPOINT = "/users/roles/{id}";
+        private static final String ENDPOINT = "/users/{id}/roles";
 
         @Test
         public void shouldGetUserRoles() {
@@ -178,7 +177,7 @@ public class UserRoleControllerTest extends BasicControllerTest {
      */
     @Nested
     public class SetUserRoles {
-        private static final String ENDPOINT = "/users/roles/{id}";
+        private static final String ENDPOINT = "/users/{id}/roles";
 
         @Test
         public void shouldSetUserRoles() {
@@ -342,7 +341,7 @@ public class UserRoleControllerTest extends BasicControllerTest {
      */
     @Nested
     public class AddUserRoles {
-        private static final String ENDPOINT = "/users/roles/{id}";
+        private static final String ENDPOINT = "/users/{id}/roles";
 
         @Test
         public void shouldAddUserRoles() {
@@ -567,7 +566,7 @@ public class UserRoleControllerTest extends BasicControllerTest {
      */
     @Nested
     public class RemoveUserRoles {
-        private static final String ENDPOINT = "/users/roles/{id}";
+        private static final String ENDPOINT = "/users/{id}/roles";
 
         @Test
         public void shouldRemoveUserRoles() {

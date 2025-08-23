@@ -8,13 +8,13 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
+      db:
         image: postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_USER: db_user
-          POSTGRES_PASSWORD: db_pass
+          POSTGRES_PASSWORD: db_password
         options: >-
           --health-cmd "bash -c 'pg_isready -h localhost -U $POSTGRES_USER'"
           --health-interval 10s
@@ -61,6 +61,25 @@ jobs:
         name: api-jar
         path: ./target
 
+    - name: Start S3
+      run: |
+        docker run -d \
+          --name s3 \
+          -p 9000:9000 \
+          -e MINIO_ROOT_USER=s3_user \
+          -e MINIO_ROOT_PASSWORD=s3_password \
+          quay.io/minio/minio server /data --console-address ":9001"
+        for i in {1..10}; do
+          if docker exec s3 mc ready local >/dev/null 2>&1; then
+            echo "MinIO is ready!"
+            exit 0
+          fi
+          echo "Waiting for MinIO..."
+          sleep 5
+        done
+        echo "MinIO did not become ready in time" >&2
+        exit 1
+
     - name: Start API
       run: |
         nohup java -jar ./target/api-1.jar &
@@ -68,9 +87,13 @@ jobs:
       env:
         SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/
         SPRING_DATASOURCE_USERNAME: db_user
-        SPRING_DATASOURCE_PASSWORD: db_pass
+        SPRING_DATASOURCE_PASSWORD: db_password
         SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
         SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+        SPRING_PROFILES_ACTIVE: prod
+        S3_URL: http://localhost:9000
+        S3_USERNAME: s3_user
+        S3_PASSWORD: s3_password
 
     - name: Test UI
       working-directory: ./ui

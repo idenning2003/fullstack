@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * {@link UserRoleController}.
  */
 @RestController
-@RequestMapping("/users/roles")
+@RequestMapping("/users/{userId}/roles")
 @Tag(name = "User Roles", description = "The roles applied to a specific user.")
 public class UserRoleController {
     @Autowired
@@ -51,7 +51,7 @@ public class UserRoleController {
      * @return {@link List} of {@link RoleDto}
      */
     @Transactional(readOnly = true)
-    @GetMapping("/{userId}")
+    @GetMapping("")
     @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('ROLE_READ')")
     @Operation(
         summary = "Get User's Roles",
@@ -95,7 +95,7 @@ public class UserRoleController {
      * @apiNote Does not throw error if roles not found
      */
     @Transactional(readOnly = true)
-    @PostMapping("/{userId}")
+    @PostMapping("")
     @PreAuthorize("hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
     @Operation(
         summary = "Set User's Roles",
@@ -145,7 +145,7 @@ public class UserRoleController {
      * @apiNote Does not throw error if roles not found
      */
     @Transactional(readOnly = true)
-    @PutMapping("/{userId}")
+    @PutMapping("")
     @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
     @Operation(
         summary = "Add User's Roles",
@@ -195,7 +195,7 @@ public class UserRoleController {
      * @apiNote Does not throw error if user does not have specified role
      */
     @Transactional(readOnly = true)
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("")
     @PreAuthorize("hasAuthority('USER_READ') and hasAuthority('USER_WRITE') and hasAuthority('ROLE_READ')")
     @Operation(
         summary = "Remove User's Roles",
